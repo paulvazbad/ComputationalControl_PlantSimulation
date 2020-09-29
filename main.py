@@ -1,8 +1,9 @@
 import math
 
-
+# AUX for memoization
 memoization_y_k_primer_orden = [-1 for i in range(0,1000)]
 memoization_ARX = [-1 for i in range(0,1000)]
+
 def calculate_a1_b1_N(T,tau,k, theta_prima):
     '''
     T : periodo
@@ -59,7 +60,7 @@ def calculate_c_ARX(number_of_coefficients, a_values, b_values, delay, k, input_
     for i in range (1,number_of_coefficients+1):
        value_at_k+=a_values[i - 1]*calculate_c_ARX(number_of_coefficients, a_values, b_values, delay, k - i, input_to_the_system)  
        value_at_k+=b_values[i - 1]*calculate_input_to_the_system(k - delay - i, input_to_the_system)
-    
+    memoization_ARX[k] = value_at_k
     return value_at_k
 
 def ARX_filter(number_of_coefficients, a_values, b_values, delay,k,input_to_the_system):
