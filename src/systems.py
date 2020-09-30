@@ -23,6 +23,7 @@ def calculate_a1_b1_N(T, tau, gain, theta_prima):
 
 
 def calculate_input_to_the_system(k, input_to_the_system):
+    #TODO: Maybe check if input_to_the_system is list or value and return it
     if(k < 0):
         return 0
     try:
@@ -41,7 +42,7 @@ def calculate_y_k(k, a1, b1, N, input_to_the_system):
     memoization_y_k_primer_orden[k] = a1 * calculate_y_k(
         k - 1, a1, b1, N, input_to_the_system) + b1 * calculate_input_to_the_system(
             k - 1 - N, input_to_the_system)
-            
+
     return memoization_y_k_primer_orden[k]
 
 

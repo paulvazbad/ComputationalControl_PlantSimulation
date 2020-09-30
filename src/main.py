@@ -10,6 +10,8 @@ def main():
     '''
     main function
     '''
+    #TODO: Main menu 
+
     print('Proyecto 1 Control Computarizado Paul Vazquez A00819877')
     escalon = [10 for i in range(0, 6)]
     #b_values = [1, 1, 1, 1, 1, 1, 1]
@@ -19,7 +21,9 @@ def main():
 
     plt.axis([0, 60, 0, 100])
     seconds = 0
+    #TODO: Infinite plot or until last value in input values reached
     while(True):
+        # TODO: Add disturbance in plot
         y = primer_orden(0.5, 4, 2, seconds, 1, escalon)
         print("Value of primer orden at " + str(seconds) +" is " + str(y))
         plt.scatter(seconds, y)
