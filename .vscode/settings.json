@@ -1,0 +1,7 @@
+{
+    "python.languageServer": "Microsoft",
+    "python.linting.pylintArgs": [
+        "--init-hook",
+        "import sys; sys.path.insert(0, './src')"
+    ]
+}
