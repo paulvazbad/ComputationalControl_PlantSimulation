@@ -7,7 +7,7 @@ memoization_y_k_primer_orden = [-1 for i in range(0, 1000)]
 memoization_ARX = [-1 for i in range(0, 1000)]
 
 
-def calculate_a1_b1_N(T, tau, k, theta_prima):
+def calculate_a1_b1_N(T, tau, gain, theta_prima):
     '''
     T : periodo
     tau: tau del sistema
@@ -16,7 +16,7 @@ def calculate_a1_b1_N(T, tau, k, theta_prima):
     '''
     N = theta_prima / T
     a1 = math.exp((-T/tau))
-    b1 = k * (1 - a1)
+    b1 = gain * (1 - a1)
     print(str(a1) + " y( k - 1)" + " + " + str(b1) +
           "m(k-1-N)" + "donde N es " + str(N))
     return (a1, b1, N)
@@ -29,30 +29,34 @@ def calculate_input_to_the_system(k, input_to_the_system):
         return input_to_the_system[int(k)]
     except Exception as identifier:
         print("fallo el calculo del input con i " + str(k) + identifier)
+        return 5
 
 
 def calculate_y_k(k, a1, b1, N, input_to_the_system):
     if(k < 0):
         return 0
+    if(memoization_y_k_primer_orden[k] != -1):
+        return memoization_y_k_primer_orden[k]
+
     memoization_y_k_primer_orden[k] = a1 * calculate_y_k(
         k - 1, a1, b1, N, input_to_the_system) + b1 * calculate_input_to_the_system(
             k - 1 - N, input_to_the_system)
+            
     return memoization_y_k_primer_orden[k]
 
 
-def primer_orden(T, tau, k, theta_prima, input_to_the_system):
+def primer_orden(T, tau, gain, k, theta_prima, input_to_the_system):
     '''
     T : periodo
     tau: tau del sistema
-    k: ganancia del sistema,
+    Gain: ganancia del sistema,
+    muestra : muestra del sistema
     theta_prima: retraso del sistema
     input: Entrada al 
     '''
-    a1, b1, N = calculate_a1_b1_N(T, tau, k, theta_prima)
     print("Funcion de primer orden")
-    for i in range(0, 6):
-        print(f'y({i})')
-        print(calculate_y_k(i, a1, b1, N, input_to_the_system))
+    a1, b1, N = calculate_a1_b1_N(T, tau, gain, theta_prima)
+    return calculate_y_k(k, a1, b1, N, input_to_the_system)
 
 
 def calculate_c_ARX(number_of_coefficients, a_values, b_values, delay, k, input_to_the_system):
