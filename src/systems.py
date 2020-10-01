@@ -23,7 +23,7 @@ def calculate_a1_b1_N(T, tau, gain, theta_prima):
 
 
 def calculate_input_to_the_system(k, input_to_the_system):
-    #TODO: Maybe check if input_to_the_system is list or value and return it
+    #TODO: Check with professor if before 0 we assume 0
     if(k < 0):
         return 0
     try:
