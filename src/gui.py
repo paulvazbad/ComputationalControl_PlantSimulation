@@ -1,14 +1,31 @@
-import Tkinter as tk
-import tkFileDialog as filedialog
+import tkinter  as tk
+from tkinter import filedialog
 import csv
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from utils import plot_simulation_foh
 
-
-
+seconds = 0
 def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab):
 
+
+    print("Entrada")
+    if tipoDeEntrada.get() == 0:
+        print(magnitud_escalon.get())
+        input_to_the_system = magnitud_escalon.get()
+    elif tipoDeEntrada.get() == 1:
+        content = buscar_archivo()
+        print(content)
+        input_to_the_system = content
+
+    print("Perturbacion")
+    if perturbacionHab.get() == 0:
+        print("No hay Perturbacion")
+        disturbance = 0
+    elif perturbacionHab.get() == 1:
+        print(magnitud_escalon_per.get())
+        disturbance = magnitud_escalon_per.get()
     print("Planta")
     if tipoDePlanta.get() == 0:
 
@@ -18,6 +35,8 @@ def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab):
         print(periodo.get())
         print(thetaprima.get())
 
+        plot_simulation_foh(periodo.get(), tao.get(), gain.get(),thetaprima.get(),input_to_the_system,disturbance,seconds, ventana)
+
     elif tipoDePlanta.get() == 1:
         
         print(coe.get())
@@ -25,18 +44,7 @@ def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab):
         print(b.get())
         print(d.get())
 
-    print("Entrada")
-    if tipoDeEntrada.get() == 0:
-        print(magnitud_escalon.get())
-    elif tipoDeEntrada.get() == 1:
-        content = buscar_archivo()
-        print(content)
-
-    print("Perturbacion")
-    if perturbacionHab.get() == 0:
-        print("No hay Perturbacion")
-    elif perturbacionHab.get() == 1:
-        print(magnitud_escalon_per.get())
+    
 
 def reset():
     pass
@@ -82,8 +90,8 @@ def buscar_archivo():
 
     if file is not None: 
         content = file.read() 
-        
-    return content
+        return content
+    print("no se pudo acceder al archivo")
 
 def entrada():
     entrada_row = 9
