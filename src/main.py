@@ -6,33 +6,37 @@ import time
 from systems import primer_orden, ARX_filter
 from utils import read_input_from_file
 
+MAX_SECONDS_SIMULATION = 1000
+
+
 def main():
     '''
     main function
     '''
-    #TODO: Main menu 
+    # TODO: Main menu
 
-    print('Proyecto 1 Control Computarizado Paul Vazquez A00819877')
-    escalon = [10 for i in range(0, 6)]
+    print('Proyecto 1 Control Computarizado Fito Cuan Paul Vazquez A00819877')
+    seconds = 0
+    disturbance = 0
+    time_to_plot = MAX_SECONDS_SIMULATION
+    input_to_the_system = 10
     #b_values = [1, 1, 1, 1, 1, 1, 1]
     #entrada_test = b_values
     #primer_orden(0.5, 4, 2, 1, escalon)
     #ARX_filter(4, [2, 3, 4, 5], b_values, 0, 0, entrada_test)
-
     plt.axis([0, 60, 0, 100])
-    seconds = 0
-    #TODO: Infinite plot or until last value in input values reached
-    while(True):
-        # TODO: Add disturbance in plot
-        y = primer_orden(0.5, 4, 2, seconds, 1, escalon)
-        print("Value of primer orden at " + str(seconds) +" is " + str(y))
-        plt.scatter(seconds, y)
-        plt.pause(0.5)
-        seconds+=1
-        escalon.append(10)
-    plt.show()
 
-        
+
+    if(isinstance(input_to_the_system, list)):
+        time_to_plot = len(input_to_the_system)
+
+    while(seconds < time_to_plot):
+        y = primer_orden(0.5, 4, 2, seconds, 1, input_to_the_system)
+        print("Value of primer orden at " + str(seconds) + " is " + str(y))
+        plt.scatter(seconds, y + disturbance)
+        plt.pause(0.5)
+        seconds += 1
+    plt.show()
 
 
 if __name__ == "__main__":

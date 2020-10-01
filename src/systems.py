@@ -27,10 +27,12 @@ def calculate_input_to_the_system(k, input_to_the_system):
     if(k < 0):
         return 0
     try:
-        return input_to_the_system[int(k)]
+        if(isinstance(input_to_the_system, list)):
+            return input_to_the_system[int(k)]
+        else:
+            return input_to_the_system
     except Exception as identifier:
         print("fallo el calculo del input con i " + str(k) + identifier)
-        return 5
 
 
 def calculate_y_k(k, a1, b1, N, input_to_the_system):
