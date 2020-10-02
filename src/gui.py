@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from utils import plot_simulation_foh
 
+from systems import primer_orden, ARX_filter
+
 seconds = 0
 def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab):
 
@@ -35,7 +37,8 @@ def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab):
         print(periodo.get())
         print(thetaprima.get())
 
-        plot_simulation_foh(periodo.get(), tao.get(), gain.get(),thetaprima.get(),input_to_the_system,disturbance,seconds, ventana)
+        #y = primer_orden(float(periodo.get()), float(tao.get()), float(gain.get()), seconds, float(thetaprima.get()), input_to_the_system)
+        #plot_simulation_foh(periodo.get(), tao.get(), gain.get(),thetaprima.get(),input_to_the_system,disturbance,seconds, ventana)
 
     elif tipoDePlanta.get() == 1:
         
@@ -44,10 +47,13 @@ def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab):
         print(b.get())
         print(d.get())
 
+
     
 
 def reset():
-    pass
+    ax.clear()
+    seconds = 0
+    
 
 def planta():
     tk.Label(ventana, text = "Simulador computacional de Plantas", font = "Verdana 10 bold").grid(row = 0, column = 2)
@@ -129,7 +135,7 @@ def final_buttons():
 
 
 ventana = tk.Tk()
-ventana.geometry("1000x1000")
+ventana.geometry("1100x1000")
 
 tipoDePlanta = tk.IntVar()
 tipoDeEntrada = tk.IntVar()
@@ -162,4 +168,24 @@ ax = figure.add_subplot(111)
 chart_type = FigureCanvasTkAgg(figure, ventana)
 chart_type.get_tk_widget().grid(row = 19, column = 6)
 
-ventana.mainloop()
+
+input_to_the_system = 10
+disturbance = 0
+#ax.axis([0, 60, 0, 100])
+
+
+while True:
+    ventana.update_idletasks()
+    ventana.update()
+
+    y = primer_orden(1, 4, 2, seconds, 1, input_to_the_system)
+    print("Value of primer orden at " + str(seconds) + " is " + str(y))
+    ax.scatter(seconds, y + disturbance)
+    plt.pause(0.2)
+    chart_type.draw()
+
+    seconds += 1
+
+    #plt.show()
+
+    
