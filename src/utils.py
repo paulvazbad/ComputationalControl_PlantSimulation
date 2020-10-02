@@ -15,6 +15,7 @@ def read_input_from_file(file_name):
 
 
 def plot_simulation_foh(T,tau,gain,theta_prima,input_to_the_system,disturbance, seconds,ventana):
+    #TODO: see if we can use the figura in the window
     plt.ion()
     if(isinstance(input_to_the_system, list)):
         time_to_plot = len(input_to_the_system)

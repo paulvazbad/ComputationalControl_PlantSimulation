@@ -3,8 +3,9 @@ calculate ARX filter systems and first order systems '''
 import math
 
 # AUX for memoization
-memoization_y_k_primer_orden = [-1 for i in range(0, 1000)]
 memoization_ARX = [-1 for i in range(0, 1000)]
+
+last_y = 0
 
 
 def calculate_a1_b1_N(T, tau, gain, theta_prima):
@@ -14,6 +15,7 @@ def calculate_a1_b1_N(T, tau, gain, theta_prima):
     k: ganancia del sistema,
     theta_prima: retraso del sistema
     '''
+    # TODO: check retraso del sistema
     N = theta_prima / T
     a1 = math.exp((-T/tau))
     b1 = gain * (1 - a1)
@@ -23,7 +25,7 @@ def calculate_a1_b1_N(T, tau, gain, theta_prima):
 
 
 def calculate_input_to_the_system(k, input_to_the_system):
-    #TODO: Check with professor if before 0 we assume 0, consider theta_prima
+    # TODO: Check with professor if before 0 we assume 0, consider theta_prima
     if(k < 0):
         return 0
     try:
@@ -37,17 +39,15 @@ def calculate_input_to_the_system(k, input_to_the_system):
         print("fallo el calculo del input con i " + str(k) + identifier)
 
 
-def calculate_y_k(k, a1, b1, N, input_to_the_system):
+def calculate_y_k_alternative(k, a1, b1, N, input_to_the_system):
+    global last_y
     if(k < 0):
         return 0
-    if(memoization_y_k_primer_orden[k] != -1):
-        return memoization_y_k_primer_orden[k]
 
-    memoization_y_k_primer_orden[k] = a1 * calculate_y_k(
-        k - 1, a1, b1, N, input_to_the_system) + b1 * calculate_input_to_the_system(
-            k - 1 - N, input_to_the_system)
+    last_y = a1 * last_y + b1 * calculate_input_to_the_system(
+        k - 1 - N, input_to_the_system)
 
-    return memoization_y_k_primer_orden[k]
+    return last_y
 
 
 def primer_orden(T, tau, gain, k, theta_prima, input_to_the_system):
@@ -61,7 +61,7 @@ def primer_orden(T, tau, gain, k, theta_prima, input_to_the_system):
     '''
     print("Funcion de primer orden")
     a1, b1, N = calculate_a1_b1_N(T, tau, gain, theta_prima)
-    return calculate_y_k(k, a1, b1, N, input_to_the_system)
+    return calculate_y_k_alternative(k, a1, b1, N, input_to_the_system)
 
 
 def calculate_c_ARX(number_of_coefficients, a_values, b_values, delay, k, input_to_the_system):
