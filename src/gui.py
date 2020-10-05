@@ -64,6 +64,11 @@ def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab):
 
 
 def reset():
+    global x
+    global y
+    global seconds
+    x = []
+    y = []
     ax.clear()
     seconds = 0
 
