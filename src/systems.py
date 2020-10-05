@@ -8,7 +8,7 @@ memoization_ARX = [-1 for i in range(0, 1000)]
 last_y = 0
 
 
-def calculate_a1_b1_N(T, tau, gain, theta_prima):
+def calculate_a1_b1_b2_N(T, tau, gain, theta_prima):
     '''
     T : periodo
     tau: tau del sistema
@@ -16,12 +16,15 @@ def calculate_a1_b1_N(T, tau, gain, theta_prima):
     theta_prima: retraso del sistema
     '''
     # TODO: check retraso del sistema
-    N = theta_prima / T
+    N = int(theta_prima / T)
+    theta = theta_prima - N*T
+    m = 1 - (theta/T)
     a1 = math.exp((-T/tau))
     b1 = gain * (1 - a1)
+    b2 = gain * (math.exp(-(m*T)/tau) - a1)
     print(str(a1) + " y( k - 1)" + " + " + str(b1) +
           "m(k-1-N)" + "donde N es " + str(N))
-    return (a1, b1, N)
+    return (a1, b1, b2, N)
 
 
 def calculate_input_to_the_system(k, input_to_the_system):
@@ -40,13 +43,14 @@ def calculate_input_to_the_system(k, input_to_the_system):
         print("fallo el calculo del input con i " + str(k) + identifier)
 
 
-def calculate_y_k_alternative(k, a1, b1, N, input_to_the_system):
+def calculate_y_k_alternative(k, a1, b1, b2, N, input_to_the_system):
     global last_y
     if(k < 0):
         return 0
 
+    # TODO: Test b2
     last_y = a1 * last_y + b1 * calculate_input_to_the_system(
-        k - 1 - N, input_to_the_system)
+        k - 1 - N, input_to_the_system) + b2 * calculate_input_to_the_system(k - 2 - N, input_to_the_system)
 
     return last_y
 
@@ -61,8 +65,8 @@ def primer_orden(T, tau, gain, k, theta_prima, input_to_the_system):
     input: Entrada al 
     '''
     print("Funcion de primer orden")
-    a1, b1, N = calculate_a1_b1_N(T, tau, gain, theta_prima)
-    return calculate_y_k_alternative(k, a1, b1, N, input_to_the_system)
+    a1, b1, b2, N = calculate_a1_b1_b2_N(T, tau, gain, theta_prima)
+    return calculate_y_k_alternative(k, a1, b1, b2, N, input_to_the_system)
 
 
 def calculate_c_ARX(number_of_coefficients, a_values, b_values, delay, k, input_to_the_system):
