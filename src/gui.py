@@ -15,6 +15,12 @@ tau_value = 1
 T_value = 1
 gain_value = 0
 theta_prima_value = 0
+
+number_of_coefficients = 0
+a_list = []
+b_list = []
+d_value = 0
+
 x = []
 y = []
 
@@ -34,6 +40,7 @@ def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab):
     elif tipoDeEntrada.get() == 1:
         content = buscar_archivo()
         print(content)
+
         input_to_the_system = content
 
     print("Perturbacion")
@@ -43,6 +50,7 @@ def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab):
     elif perturbacionHab.get() == 1:
         print(magnitud_escalon_per.get())
         disturbance_value = float(magnitud_escalon_per.get())
+
     print("Planta")
     if tipoDePlanta.get() == 0:
 
@@ -57,10 +65,12 @@ def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab):
 
     elif tipoDePlanta.get() == 1:
 
-        print(coe.get())
-        print(a.get())
-        print(b.get())
-        print(d.get())
+
+        number_of_coefficients = coe.get()
+        a_list = [ int(x) for x in a.get().split(",")]
+        b_list = [ int(x) for x in b.get().split(",")]
+        d_value = d.get()
+
 
 
 def reset():
@@ -87,12 +97,10 @@ def planta():
         row=row_c, column=col_c)
     etiqueta_tao = tk.Label(ventana, text="Tao").grid(
         row=row_c + 1, column=col_c)
-    etiqueta_tiempomuerto = tk.Label(
-        ventana, text="Tiempo Muerto").grid(row=row_c + 2, column=col_c)
     etiqueta_periodo = tk.Label(ventana, text="Periodo").grid(
-        row=row_c + 3, column=col_c)
+        row=row_c + 2, column=col_c)
     etiqueta_thetaprima = tk.Label(
-        ventana, text="Theta Prima").grid(row=row_c+4, column=col_c)
+        ventana, text="Theta Prima").grid(row=row_c+3, column=col_c)
 
     row_c = 4
     col_c = 2
@@ -108,9 +116,8 @@ def planta():
 
     gain.grid(row=4, column=0 + 1)
     tao.grid(row=4 + 1, column=0 + 1)
-    tiempomuerto.grid(row=4 + 2, column=0 + 1)
-    periodo.grid(row=4 + 3, column=0 + 1)
-    thetaprima.grid(row=4 + 4, column=0 + 1)
+    periodo.grid(row=4 + 2, column=0 + 1)
+    thetaprima.grid(row=4 + 3, column=0 + 1)
 
     coe.grid(row=4, column=2 + 1)
     a.grid(row=4 + 1, column=2 + 1)
@@ -129,6 +136,9 @@ def buscar_archivo():
 
     if file is not None:
         content = file.read()
+        content = content.decode("utf-8") 
+        content = [ int(x) for x in content.split(",")]
+
         return content
     print("no se pudo acceder al archivo")
 
@@ -187,7 +197,6 @@ perturbacionHab = tk.IntVar()
 
 gain = tk.Entry(ventana)
 tao = tk.Entry(ventana)
-tiempomuerto = tk.Entry(ventana)
 periodo = tk.Entry(ventana)
 thetaprima = tk.Entry(ventana)
 coe = tk.Entry(ventana)
@@ -210,8 +219,14 @@ ax = figure.add_subplot(111)
 chart_type = FigureCanvasTkAgg(figure, ventana)
 chart_type.get_tk_widget().grid(row=19, column=6)
 
+figure_input = plt.Figure(figsize=(6, 5), dpi=100)
+ax_input = figure.add_subplot(111)
+chart_type_input = FigureCanvasTkAgg(figure_input, ventana)
+chart_type_input.get_tk_widget().grid(row=19, column=7)
+
 
 #ax.axis([0, 60, 0, 100])
+# number_of_coefficients, a_values, b_values, delay, k, input_to_the_system
 ticks = 0
 
 while True:
@@ -223,8 +238,12 @@ while True:
     ticks += 0.05
     chart_type.draw()
     if(ticks >= 0.1):
-        y_value = primer_orden(T_value, tau_value, gain_value,
-                               seconds, theta_prima_value, input_to_the_system)
+        if tipoDePlanta.get() == 0:
+            y_value = primer_orden(T_value, tau_value, gain_value,
+                                   seconds, theta_prima_value, input_to_the_system)
+        else:
+            #y_value = ARX_filter(int(number_of_coefficients), a_list, b_list, int(d_value), seconds, input_to_the_system )
+            pass
         print(y_value)
         y.append(y_value + disturbance_value)
         x.append(len(y) - 1)
