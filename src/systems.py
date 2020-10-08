@@ -23,7 +23,7 @@ def calculate_a1_b1_b2_N(T, tau, gain, theta_prima):
     b1 = gain * (1 - a1)
     b2 = gain * (math.exp(-(m*T)/tau) - a1)
     print(str(a1) + " y( k - 1)" + " + " + str(b1) +
-          "m(k-1-N)" + "donde N es " + str(N))
+          "m(k-1-N)" + "b2 m(k-2-N)" + "donde N es " + str(N))
     return (a1, b1, b2, N)
 
 
@@ -99,4 +99,15 @@ def ARX_filter(number_of_coefficients, a_values, b_values, delay, k, input_to_th
     if(k < 0):
         print("Invalid value of k")
     print(calculate_c_ARX(number_of_coefficients, a_values,
-                          b_values, delay, k+1, input_to_the_system))
+                          b_values, delay, k -1, input_to_the_system))
+
+
+if(__name__ == "__main__"):
+    a = [0.8825]
+    b = [0.235]
+    delay = 1
+    k = 15
+    input_to_the_system = [10, 10, 10,10]
+    for i in range(0,6):
+        print('k: ' + str(i))
+        ARX_filter(1,a,b,delay,i,input_to_the_system)
