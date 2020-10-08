@@ -34,8 +34,8 @@ def calculate_input_to_the_system(k, input_to_the_system):
         return 0
     try:
         if(isinstance(input_to_the_system, list)):
-            if(k > len(input_to_the_system)):
-                return input_to_the_system[len(input_to_the_system) - 1]
+            if(k >= len(input_to_the_system)):
+                return input_to_the_system[-1]
             return input_to_the_system[int(k)]
         else:
             return input_to_the_system
@@ -66,7 +66,8 @@ def primer_orden(T, tau, gain, k, theta_prima, input_to_the_system):
     '''
     print("Funcion de primer orden")
     a1, b1, b2, N = calculate_a1_b1_b2_N(T, tau, gain, theta_prima)
-    return calculate_y_k_alternative(k, a1, b1, b2, N, input_to_the_system)
+    return calculate_y_k_alternative(k, a1, b1, b2, N, input_to_the_system), calculate_input_to_the_system(
+        k, input_to_the_system)
 
 
 def calculate_c_ARX(number_of_coefficients, a_values, b_values, delay, k, input_to_the_system):

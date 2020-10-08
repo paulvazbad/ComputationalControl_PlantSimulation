@@ -76,11 +76,18 @@ def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab):
 def reset():
     global x
     global y
+    global y_input
     global seconds
     x = []
     y = []
+    y_input = []
     ax.clear()
+    ax_input.clear()
     seconds = 0
+    ax.set_title("Output")
+    ax_input.set_title("Input")
+    ax.set_ylim([0,60])
+    ax_input.set_ylim([0,60])
 
 
 def planta():
@@ -181,7 +188,7 @@ def perturbacion():
 def final_buttons():
 
     tk.Label(ventana, text="Ejecutar",
-             font="Verdana 10 bold").grid(row=17, column=6)
+             font="Verdana 10 bold").grid(row=17, column=5)
 
     tk.Button(ventana, text="Enter", command=lambda: enter(
         tipoDePlanta, tipoDeEntrada, perturbacionHab)).grid(row=18, column=3)
@@ -214,38 +221,50 @@ perturbacion()
 final_buttons()
 
 
-figure = plt.Figure(figsize=(6, 5), dpi=100)
+figure = plt.Figure(figsize=(6, 3), dpi=100)
 ax = figure.add_subplot(111)
 chart_type = FigureCanvasTkAgg(figure, ventana)
 chart_type.get_tk_widget().grid(row=19, column=6)
 
-figure_input = plt.Figure(figsize=(6, 5), dpi=100)
-ax_input = figure.add_subplot(111)
+
+
+figure_input = plt.Figure(figsize=(6, 3), dpi=100)
+ax_input = figure_input.add_subplot(111)
 chart_type_input = FigureCanvasTkAgg(figure_input, ventana)
-chart_type_input.get_tk_widget().grid(row=19, column=7)
+chart_type_input.get_tk_widget().grid(row=20, column=6)
 
+ax.set_title("Output")
+ax_input.set_title("Input")
+ax.set_ylim([0,60])
+ax_input.set_ylim([0,60])
 
-#ax.axis([0, 60, 0, 100])
 # number_of_coefficients, a_values, b_values, delay, k, input_to_the_system
 ticks = 0
+
+y_input = []
 
 while True:
     ventana.update_idletasks()
     ventana.update()
     ax.plot(x, y, 'r-')
+    ax_input.plot(x, y_input, 'r-')
+
     #ax.scatter(seconds, y + disturbance_value)
     plt.pause(0.05)
     ticks += 0.05
     chart_type.draw()
+    chart_type_input.draw()
+
     if(ticks >= 0.1):
         if tipoDePlanta.get() == 0:
-            y_value = primer_orden(T_value, tau_value, gain_value,
+            y_value, y_input_val = primer_orden(T_value, tau_value, gain_value,
                                    seconds, theta_prima_value, input_to_the_system)
         else:
             #y_value = ARX_filter(int(number_of_coefficients), a_list, b_list, int(d_value), seconds, input_to_the_system )
             pass
         print(y_value)
         y.append(y_value + disturbance_value)
+        y_input.append(y_input_val)
         x.append(len(y) - 1)
         seconds += 1
         ticks = 0
