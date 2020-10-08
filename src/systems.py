@@ -77,10 +77,12 @@ def calculate_c_ARX(number_of_coefficients, a_values, b_values, delay, k, input_
         return memoization_ARX[k]
 
     value_at_k = 0
-    for i in range(1, number_of_coefficients+1):
-        value_at_k += a_values[i - 1]*calculate_c_ARX(
-            number_of_coefficients, a_values, b_values, delay, k - i, input_to_the_system)
-        value_at_k += b_values[i - 1] * \
+    for i in range(0, number_of_coefficients):
+        value_at_k += a_values[i]*calculate_c_ARX(
+            number_of_coefficients, a_values, b_values, delay, k - i - 1, input_to_the_system)
+        if(i == 1):
+            print("Estoy con el coefficiente 1")
+        value_at_k += b_values[i] * \
             calculate_input_to_the_system(k - delay - i, input_to_the_system)
     memoization_ARX[k] = value_at_k
     return value_at_k
@@ -91,7 +93,7 @@ def ARX_filter(number_of_coefficients, a_values, b_values, delay, k, input_to_th
     number_of_coefficients: cantidad de a's y b's en la ecuacion de diferencias
     a_values: coeficientes de a
     b_values: coeficientes de b
-    delay: retraso en la funcion
+    delay: retraso en la funcion (N en intervalos de muestreo NO EN SEGUNDOS)
     k: valor de k a plottear (ese y todos los anteriores porque es recursivo)
     input_to_the_system: valores de entrada al sistema (tienen que ser >=k)
 
@@ -99,15 +101,21 @@ def ARX_filter(number_of_coefficients, a_values, b_values, delay, k, input_to_th
     if(k < 0):
         print("Invalid value of k")
     print(calculate_c_ARX(number_of_coefficients, a_values,
-                          b_values, delay, k -1, input_to_the_system))
+                          b_values, delay, k, input_to_the_system))
 
 
 if(__name__ == "__main__"):
-    a = [0.8825]
-    b = [0.235]
-    delay = 1
+    # a1, a2, a3....
+    a = [0.8825,0]
+    # b0, b1, b2....
+    b = [0, 0.235]
+
+    ## NUMBER OF A'S MUST BE EQUAL TO NUMBER OF B'S
+    delay = 2
     k = 15
     input_to_the_system = [10, 10, 10,10]
+    
     for i in range(0,6):
         print('k: ' + str(i))
-        ARX_filter(1,a,b,delay,i,input_to_the_system)
+        ARX_filter(2,a,b,delay,i,input_to_the_system)
+        
