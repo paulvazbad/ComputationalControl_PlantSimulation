@@ -15,7 +15,6 @@ def calculate_a1_b1_b2_N(T, tau, gain, theta_prima):
     k: ganancia del sistema,
     theta_prima: retraso del sistema
     '''
-    # TODO: check retraso del sistema
     N = int(theta_prima / T)
     theta = theta_prima - N*T
     m = 1 - (theta/T)
@@ -23,14 +22,13 @@ def calculate_a1_b1_b2_N(T, tau, gain, theta_prima):
     b1 = gain * (1 - a1)
     b2 = gain * (math.exp(-(m*T)/tau) - a1)
     print(str(a1) + " y( k - 1)" + " + " + str(b1) +
-          "m(k-1-N)" + "b2 m(k-2-N)" + "donde N es " + str(N))
+          "m(k-1-N) + " + str(b2) + "m(k-2-N)" + "donde N es " + str(N))
     return (a1, b1, b2, N)
 
 
 def calculate_input_to_the_system(k, input_to_the_system):
     # TODO: Check with professor if before 0 we assume 0, consider theta_prima
     if(k < 0):
-        print("Regreso 0 porque antes de 0")
         return 0
     try:
         if(isinstance(input_to_the_system, list)):
@@ -103,6 +101,12 @@ def ARX_filter(number_of_coefficients, a_values, b_values, delay, k, input_to_th
     print(calculate_c_ARX(number_of_coefficients, a_values,
                           b_values, delay, k, input_to_the_system))
 
+
+def reset_systems():
+    global last_y
+    global memoization_ARX
+    last_y = 0
+    memoization_ARX = [-1 for i in range(0, 1000)]
 
 if(__name__ == "__main__"):
     # a1, a2, a3....

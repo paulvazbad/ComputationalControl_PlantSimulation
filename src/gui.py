@@ -5,7 +5,7 @@ import csv
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-from systems import primer_orden, ARX_filter
+from systems import primer_orden, ARX_filter, reset_systems
 
 seconds = 0
 
@@ -36,7 +36,9 @@ def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab):
     print("Entrada")
     if tipoDeEntrada.get() == 0:
         print(magnitud_escalon.get())
-        input_to_the_system = float(magnitud_escalon.get())
+        input_to_the_system = 0
+        if(magnitud_escalon.get().isnumeric()):
+            input_to_the_system = float(magnitud_escalon.get())
     elif tipoDeEntrada.get() == 1:
         content = buscar_archivo()
         print(content)
@@ -88,6 +90,7 @@ def reset():
     ax_input.set_title("Input")
     ax.set_ylim([0,60])
     ax_input.set_ylim([0,60])
+    reset_systems()
 
 
 def planta():
@@ -102,7 +105,7 @@ def planta():
 
     etiqueta_gain = tk.Label(ventana, text="Gain").grid(
         row=row_c, column=col_c)
-    etiqueta_tao = tk.Label(ventana, text="Tao").grid(
+    etiqueta_tao = tk.Label(ventana, text="Tau").grid(
         row=row_c + 1, column=col_c)
     etiqueta_periodo = tk.Label(ventana, text="Periodo").grid(
         row=row_c + 2, column=col_c)
