@@ -32,6 +32,10 @@ def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab):
     global T_value
     global gain_value
     global theta_prima_value
+    global a_list
+    global b_list
+    global d_value
+    global number_of_coefficients
 
     print("Entrada")
     if tipoDeEntrada.get() == 0:
@@ -68,10 +72,10 @@ def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab):
     elif tipoDePlanta.get() == 1:
 
 
-        number_of_coefficients = coe.get()
-        a_list = [ int(x) for x in a.get().split(",")]
-        b_list = [ int(x) for x in b.get().split(",")]
-        d_value = d.get()
+        number_of_coefficients = int(coe.get())
+        a_list = [ float(x) for x in a.get().split(",")]
+        b_list = [ float(x) for x in b.get().split(",")]
+        d_value = int(d.get())
 
 
 
@@ -258,14 +262,16 @@ while True:
     chart_type.draw()
     chart_type_input.draw()
 
+
     if(ticks >= 0.1):
-        if tipoDePlanta.get() == 0:
+        if int(tipoDePlanta.get()) == 0:
             y_value, y_input_val = primer_orden(T_value, tau_value, gain_value,
                                    seconds, theta_prima_value, input_to_the_system)
-        else:
-            #y_value = ARX_filter(int(number_of_coefficients), a_list, b_list, int(d_value), seconds, input_to_the_system )
-            pass
-        print(y_value)
+        elif int(tipoDePlanta.get()) == 1:
+
+            print(number_of_coefficients, a_list, b_list, d_value, seconds, input_to_the_system)
+            y_value, y_input_val = ARX_filter(number_of_coefficients, a_list, b_list, d_value, seconds, input_to_the_system )
+
         y.append(y_value + disturbance_value)
         y_input.append(y_input_val)
         x.append(len(y) - 1)

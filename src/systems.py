@@ -102,6 +102,12 @@ def ARX_filter(number_of_coefficients, a_values, b_values, delay, k, input_to_th
                           b_values, delay, k, input_to_the_system))
 
 
+
+    return calculate_c_ARX(number_of_coefficients, a_values,b_values, delay, k, input_to_the_system), calculate_input_to_the_system(
+        k, input_to_the_system)
+
+
+
 def reset_systems():
     global last_y
     global memoization_ARX
