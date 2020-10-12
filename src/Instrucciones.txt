@@ -1,0 +1,9 @@
+
+ComputationalControl_PlantSimulation
+
+Para utilizar el programa se necesita correr en python3 y tener siguentes librerias:
+-matplotlib
+-tkinter
+-csv
+
+Para correrlo se debe ejecutar el archivo src/gui.py, los demas archivos contienen funciones y pruebas. 
