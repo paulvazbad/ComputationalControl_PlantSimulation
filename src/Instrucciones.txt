@@ -6,4 +6,9 @@ Para utilizar el programa se necesita correr en python3 y tener siguentes librer
 -tkinter
 -csv
 
-Para correrlo se debe ejecutar el archivo src/gui.py, los demas archivos contienen funciones y pruebas. 
+Para correrlo se debe ejecutar el archivo src/gui.py, los demas archivos contienen funciones y pruebas.
+
+Las a's y b's correspondientes al filtro ARX se introducen separadas por commas en el siguiente orden:
+a:  a1, a2, a3....
+b: b0, b1, b2....
+d: delay,....

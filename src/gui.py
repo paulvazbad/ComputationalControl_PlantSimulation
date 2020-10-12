@@ -247,15 +247,16 @@ ax_input.set_ylim([0,60])
 
 # number_of_coefficients, a_values, b_values, delay, k, input_to_the_system
 ticks = 0
-
+X_RANGE = 50
+y_value = 100
 y_input = []
 
 while True:
     ventana.update_idletasks()
     ventana.update()
     ax.plot(x, y, 'r-')
+    ax.axis([seconds - X_RANGE , seconds, 0 , y_value * 2])
     ax_input.plot(x, y_input, 'r-')
-
     #ax.scatter(seconds, y + disturbance_value)
     plt.pause(0.05)
     ticks += 0.05
@@ -274,7 +275,11 @@ while True:
 
         y.append(y_value + disturbance_value)
         y_input.append(y_input_val)
-        x.append(len(y) - 1)
+        x.append(seconds)
+        if(seconds >=X_RANGE):
+            y.pop(0)
+            x.pop(0)
+            y_input.pop(0)
         seconds += 1
         ticks = 0
     # plt.show()
