@@ -249,14 +249,15 @@ ax_input.set_ylim([0,60])
 ticks = 0
 X_RANGE = 50
 y_value = 100
+y_input_val = 100
 y_input = []
 
 while True:
     ventana.update_idletasks()
     ventana.update()
     ax.plot(x, y, 'r-')
-    ax.axis([seconds - X_RANGE , seconds, 0 , 100])
-    ax_input.axis([seconds - X_RANGE , seconds, 0 , 100])
+    ax.axis([seconds - X_RANGE , seconds, 0 , y_value * 2])
+    ax_input.axis([seconds - X_RANGE , seconds, 0 , y_input_val *2])
     ax_input.plot(x, y_input, 'r-')
     #ax.scatter(seconds, y + disturbance_value)
     plt.pause(0.05)
