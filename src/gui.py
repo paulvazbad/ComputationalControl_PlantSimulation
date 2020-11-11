@@ -25,6 +25,7 @@ x = []
 y = []
 
 start_graphing = False
+plant_type_flag = 0
 
 
 def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab):
@@ -39,8 +40,10 @@ def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab):
     global d_value
     global number_of_coefficients
     global start_graphing
+    global plant_type_flag
 
     start_graphing = True
+    plant_type_flag = tipoDePlanta.get()
 
     print("Entrada")
     if tipoDeEntrada.get() == 0:
@@ -158,8 +161,10 @@ def buscar_archivo():
     if file is not None:
         content = file.read()
         content = content.decode("utf-8") 
-        content = [ int(x) for x in content.split(",")]
+        content = content.splitlines()
+        content = [float(i) for i in content]
 
+        print (content)
         return content
     print("no se pudo acceder al archivo")
 
@@ -276,10 +281,10 @@ while True:
 
     if start_graphing:
         if(ticks >= 0.1):
-            if int(tipoDePlanta.get()) == 0:
+            if plant_type_flag == 0:
                 y_value, y_input_val = primer_orden(T_value, tau_value, gain_value,
                                        seconds, theta_prima_value, input_to_the_system)
-            elif int(tipoDePlanta.get()) == 1:
+            elif plant_type_flag == 1:
 
                 print(number_of_coefficients, a_list, b_list, d_value, seconds, input_to_the_system)
                 y_value, y_input_val = ARX_filter(number_of_coefficients, a_list, b_list, d_value, seconds, input_to_the_system )
