@@ -28,6 +28,7 @@ start_graphing = False
 plant_type_flag = 0
 
 
+
 def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab):
     global input_to_the_system
     global disturbance_value
@@ -197,11 +198,63 @@ def perturbacion():
 
     check_box = tk.Checkbutton(
         ventana, text="Activar", variable=perturbacionHab, onvalue=1, offvalue=0)
-    check_box.grid(row=per_row + 1, column=1)
+    check_box.grid(row=per_row + 1, column=2)
 
     etiqueta_magnitud_escalon = tk.Label(ventana, text="Magnitud").grid(
-        row=per_row + 2, column=per_col - 2)
-    magnitud_escalon_per.grid(row=per_row + 2, column=per_col - 1)
+        row=per_row + 1, column=per_col - 2)
+    magnitud_escalon_per.grid(row=per_row + 1, column=per_col - 1)
+
+
+
+def constantes():
+
+    per_row = 14
+    per_col = 2
+
+    check_box = tk.Checkbutton(
+        ventana, text="Manual/Automatico", variable=manualAutomatico, onvalue=1, offvalue=0)
+    check_box.grid(row=per_row + 2, column=1)
+
+    per_row += 1
+
+    choices = { 'Ref_IAE', 'Ref_ISE', 'Ref_ITAE', 'Per_IAE', 'Per_ISE', 'Per_ITAE'}
+
+    popupMenu = tk.OptionMenu(ventana, tipoMetodo, *choices)
+
+    popupMenu.grid(row=per_row + 3, column=per_col - 1)
+
+    etiqueta_constantesPID= tk.Label(ventana, text="Criterio de Sintonía").grid(
+        row=per_row + 3, column=per_col - 2)
+
+    #kc,kd,ki = calcularConstantes(tipoMetodo, gain_value, tau_value, thetaprima)
+    kc,kd,ki = 0,0,0
+
+    tk.Label(ventana, text="Kc: ").grid(row=per_row + 4, column=per_col - 2)
+    tk.Label(ventana, text="Kd: ").grid(row=per_row + 5, column=per_col - 2)
+    tk.Label(ventana, text="Ki: ").grid(row=per_row + 6, column=per_col - 2)
+
+    var_kc = tk.IntVar()
+    var_kd = tk.IntVar()
+    var_ki = tk.IntVar()
+
+    kc_tb = tk.Entry(ventana, text = var_kc)
+    ki_tb = tk.Entry(ventana, text = var_kd)
+    kd_tb = tk.Entry(ventana, text = var_ki)
+
+    kc_tb.grid(row=per_row + 4, column=per_col - 1)
+    ki_tb.grid(row=per_row + 5, column=per_col - 1)
+    kd_tb.grid(row=per_row + 6, column=per_col - 1)
+
+    var_kc.set(kc)
+    var_kd.set(kd)
+    var_ki.set(ki)
+
+
+
+
+
+
+
 
 
 def final_buttons():
@@ -220,6 +273,10 @@ ventana.geometry("1500x1000")
 tipoDePlanta = tk.IntVar()
 tipoDeEntrada = tk.IntVar()
 perturbacionHab = tk.IntVar()
+manualAutomatico = tk.IntVar()
+
+tipoMetodo = tk.StringVar()
+
 
 gain = tk.Entry(ventana)
 tao = tk.Entry(ventana)
@@ -234,23 +291,29 @@ magnitud_escalon = tk.Entry(ventana)
 magnitud_escalon_per = tk.Entry(ventana)
 
 
+
+
+
+
 planta()
 entrada()
 perturbacion()
+constantes()
 final_buttons()
+
 
 
 figure = plt.Figure(figsize=(6, 3), dpi=100)
 ax = figure.add_subplot(111)
 chart_type = FigureCanvasTkAgg(figure, ventana)
-chart_type.get_tk_widget().grid(row=19, column=6)
+chart_type.get_tk_widget().grid(row=22, column=6)
 
 
 
 figure_input = plt.Figure(figsize=(6, 3), dpi=100)
 ax_input = figure_input.add_subplot(111)
 chart_type_input = FigureCanvasTkAgg(figure_input, ventana)
-chart_type_input.get_tk_widget().grid(row=20, column=6)
+chart_type_input.get_tk_widget().grid(row=23, column=6)
 
 ax.set_title("Output")
 ax_input.set_title("Input")
