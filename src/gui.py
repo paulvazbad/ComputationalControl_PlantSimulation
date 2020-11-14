@@ -5,7 +5,7 @@ import csv
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-from systems import primer_orden, ARX_filter, reset_systems
+from systems import primer_orden, ARX_filter, reset_systems, calculate_criterios
 
 seconds = 0
 
@@ -24,6 +24,9 @@ d_value = 0
 x = []
 y = []
 
+start_graphing = False
+plant_type_flag = 0
+
 
 def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab):
     global input_to_the_system
@@ -36,6 +39,11 @@ def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab):
     global b_list
     global d_value
     global number_of_coefficients
+    global start_graphing
+    global plant_type_flag
+
+    start_graphing = True
+    plant_type_flag = tipoDePlanta.get()
 
     print("Entrada")
     if tipoDeEntrada.get() == 0:
@@ -71,12 +79,16 @@ def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab):
 
     elif tipoDePlanta.get() == 1:
 
-
         number_of_coefficients = int(coe.get())
         a_list = [ float(x) for x in a.get().split(",")]
         b_list = [ float(x) for x in b.get().split(",")]
         d_value = int(d.get())
 
+    kc,kd,ki = calculate_criterios(str(tipoMetodo.get()), float(gain.get()), float(thetaprima.get()), float(tao.get()))
+
+    var_kc.set(kc)
+    var_kd.set(kd)
+    var_ki.set(ki)
 
 
 def reset():
@@ -84,6 +96,9 @@ def reset():
     global y
     global y_input
     global seconds
+    global start_graphing
+
+    start_graphing = False
     x = []
     y = []
     y_input = []
@@ -151,8 +166,10 @@ def buscar_archivo():
     if file is not None:
         content = file.read()
         content = content.decode("utf-8") 
-        content = [ int(x) for x in content.split(",")]
+        content = content.splitlines()
+        content = [float(i) for i in content]
 
+        print (content)
         return content
     print("no se pudo acceder al archivo")
 
@@ -185,11 +202,55 @@ def perturbacion():
 
     check_box = tk.Checkbutton(
         ventana, text="Activar", variable=perturbacionHab, onvalue=1, offvalue=0)
-    check_box.grid(row=per_row + 1, column=1)
+    check_box.grid(row=per_row + 1, column=2)
 
     etiqueta_magnitud_escalon = tk.Label(ventana, text="Magnitud").grid(
-        row=per_row + 2, column=per_col - 2)
-    magnitud_escalon_per.grid(row=per_row + 2, column=per_col - 1)
+        row=per_row + 1, column=per_col - 2)
+    magnitud_escalon_per.grid(row=per_row + 1, column=per_col - 1)
+
+
+
+def constantes():
+
+    per_row = 14
+    per_col = 2
+
+    check_box = tk.Checkbutton(
+        ventana, text="Manual/Automatico", variable=manualAutomatico, onvalue=1, offvalue=0)
+    check_box.grid(row=per_row + 2, column=1)
+
+    per_row += 1
+
+    choices = { 'Ref_IAE', 'Ref_ISE', 'Ref_ITAE', 'Per_IAE', 'Per_ISE', 'Per_ITAE'}
+
+    popupMenu = tk.OptionMenu(ventana, tipoMetodo, *choices)
+
+    popupMenu.grid(row=per_row + 3, column=per_col - 1)
+
+    etiqueta_constantesPID= tk.Label(ventana, text="Criterio de Sintonía").grid(
+        row=per_row + 3, column=per_col - 2)
+
+    
+    tk.Label(ventana, text="Kc: ").grid(row=per_row + 4, column=per_col - 2)
+    tk.Label(ventana, text="Kd: ").grid(row=per_row + 5, column=per_col - 2)
+    tk.Label(ventana, text="Ki: ").grid(row=per_row + 6, column=per_col - 2)
+
+    kc_tb = tk.Entry(ventana, text = var_kc)
+    ki_tb = tk.Entry(ventana, text = var_kd)
+    kd_tb = tk.Entry(ventana, text = var_ki)
+
+    kc_tb.grid(row=per_row + 4, column=per_col - 1)
+    ki_tb.grid(row=per_row + 5, column=per_col - 1)
+    kd_tb.grid(row=per_row + 6, column=per_col - 1)
+
+    
+
+
+
+
+
+
+
 
 
 def final_buttons():
@@ -208,6 +269,14 @@ ventana.geometry("1500x1000")
 tipoDePlanta = tk.IntVar()
 tipoDeEntrada = tk.IntVar()
 perturbacionHab = tk.IntVar()
+manualAutomatico = tk.IntVar()
+
+tipoMetodo = tk.StringVar()
+
+var_kc = tk.IntVar()
+var_kd = tk.IntVar()
+var_ki = tk.IntVar()
+
 
 gain = tk.Entry(ventana)
 tao = tk.Entry(ventana)
@@ -222,23 +291,29 @@ magnitud_escalon = tk.Entry(ventana)
 magnitud_escalon_per = tk.Entry(ventana)
 
 
+
+
+
+
 planta()
 entrada()
 perturbacion()
+constantes()
 final_buttons()
+
 
 
 figure = plt.Figure(figsize=(6, 3), dpi=100)
 ax = figure.add_subplot(111)
 chart_type = FigureCanvasTkAgg(figure, ventana)
-chart_type.get_tk_widget().grid(row=19, column=6)
+chart_type.get_tk_widget().grid(row=22, column=6)
 
 
 
 figure_input = plt.Figure(figsize=(6, 3), dpi=100)
 ax_input = figure_input.add_subplot(111)
 chart_type_input = FigureCanvasTkAgg(figure_input, ventana)
-chart_type_input.get_tk_widget().grid(row=20, column=6)
+chart_type_input.get_tk_widget().grid(row=23, column=6)
 
 ax.set_title("Output")
 ax_input.set_title("Input")
@@ -253,11 +328,13 @@ y_input_val = 100
 y_input = []
 
 while True:
+
     ventana.update_idletasks()
     ventana.update()
+    ax.axis([seconds - X_RANGE , seconds, 0 , 100])
+    ax_input.axis([seconds - X_RANGE , seconds, 0 , 100])
+
     ax.plot(x, y, 'r-')
-    ax.axis([seconds - X_RANGE , seconds, 0 , y_value * 2])
-    ax_input.axis([seconds - X_RANGE , seconds, 0 , y_input_val *2])
     ax_input.plot(x, y_input, 'r-')
     #ax.scatter(seconds, y + disturbance_value)
     plt.pause(0.05)
@@ -265,23 +342,26 @@ while True:
     chart_type.draw()
     chart_type_input.draw()
 
+    if start_graphing:
+        if(ticks >= 0.1):
+            if plant_type_flag == 0:
+                y_value, y_input_val = primer_orden(T_value, tau_value, gain_value,
+                                       seconds, theta_prima_value, input_to_the_system)
+            elif plant_type_flag == 1:
 
-    if(ticks >= 0.1):
-        if int(tipoDePlanta.get()) == 0:
-            y_value, y_input_val = primer_orden(T_value, tau_value, gain_value,
-                                   seconds, theta_prima_value, input_to_the_system)
-        elif int(tipoDePlanta.get()) == 1:
+                print(number_of_coefficients, a_list, b_list, d_value, seconds, input_to_the_system)
+                y_value, y_input_val = ARX_filter(number_of_coefficients, a_list, b_list, d_value, seconds, input_to_the_system )
 
-            print(number_of_coefficients, a_list, b_list, d_value, seconds, input_to_the_system)
-            y_value, y_input_val = ARX_filter(number_of_coefficients, a_list, b_list, d_value, seconds, input_to_the_system )
+            ax.set_title("Output: {}".format(y_value + disturbance_value))
+            ax_input.set_title("Input: {}".format(y_input_val))
 
-        y.append(y_value + disturbance_value)
-        y_input.append(y_input_val)
-        x.append(seconds)
-        if(seconds >=X_RANGE):
-            y.pop(0)
-            x.pop(0)
-            y_input.pop(0)
-        seconds += 1
-        ticks = 0
-    # plt.show()
+            y.append(y_value + disturbance_value)
+            y_input.append(y_input_val)
+            x.append(seconds)
+            if(seconds >=X_RANGE):
+                y.pop(0)
+                x.pop(0)
+                y_input.pop(0)
+            seconds += 1
+            ticks = 0
+        # plt.show()
