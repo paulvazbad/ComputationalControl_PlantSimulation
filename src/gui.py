@@ -5,7 +5,7 @@ import csv
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-from systems import primer_orden, ARX_filter, reset_systems
+from systems import primer_orden, ARX_filter, reset_systems, calculate_criterios
 
 seconds = 0
 
@@ -26,7 +26,6 @@ y = []
 
 start_graphing = False
 plant_type_flag = 0
-
 
 
 def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab):
@@ -85,6 +84,11 @@ def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab):
         b_list = [ float(x) for x in b.get().split(",")]
         d_value = int(d.get())
 
+    kc,kd,ki = calculate_criterios(str(tipoMetodo.get()), float(gain.get()), float(thetaprima.get()), float(tao.get()))
+
+    var_kc.set(kc)
+    var_kd.set(kd)
+    var_ki.set(ki)
 
 
 def reset():
@@ -226,16 +230,10 @@ def constantes():
     etiqueta_constantesPID= tk.Label(ventana, text="Criterio de Sintonía").grid(
         row=per_row + 3, column=per_col - 2)
 
-    #kc,kd,ki = calcularConstantes(tipoMetodo, gain_value, tau_value, thetaprima)
-    kc,kd,ki = 0,0,0
-
+    
     tk.Label(ventana, text="Kc: ").grid(row=per_row + 4, column=per_col - 2)
     tk.Label(ventana, text="Kd: ").grid(row=per_row + 5, column=per_col - 2)
     tk.Label(ventana, text="Ki: ").grid(row=per_row + 6, column=per_col - 2)
-
-    var_kc = tk.IntVar()
-    var_kd = tk.IntVar()
-    var_ki = tk.IntVar()
 
     kc_tb = tk.Entry(ventana, text = var_kc)
     ki_tb = tk.Entry(ventana, text = var_kd)
@@ -245,9 +243,7 @@ def constantes():
     ki_tb.grid(row=per_row + 5, column=per_col - 1)
     kd_tb.grid(row=per_row + 6, column=per_col - 1)
 
-    var_kc.set(kc)
-    var_kd.set(kd)
-    var_ki.set(ki)
+    
 
 
 
@@ -276,6 +272,10 @@ perturbacionHab = tk.IntVar()
 manualAutomatico = tk.IntVar()
 
 tipoMetodo = tk.StringVar()
+
+var_kc = tk.IntVar()
+var_kd = tk.IntVar()
+var_ki = tk.IntVar()
 
 
 gain = tk.Entry(ventana)

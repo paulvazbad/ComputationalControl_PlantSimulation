@@ -106,7 +106,36 @@ def ARX_filter(number_of_coefficients, a_values, b_values, delay, k, input_to_th
     return calculate_c_ARX(number_of_coefficients, a_values,b_values, delay, k, input_to_the_system), calculate_input_to_the_system(
         k, input_to_the_system)
 
+def calculate_criterios(criterio, k, t0, tao):
 
+    if criterio == 'Ref_IAE':
+        kc = (1.086/k)*(t0/tao)**-0.869
+        ki = tao/(0.74-0.13*(t0/tao))
+        kd = 0.348*tao*(t0/tao)**0.914
+
+    #elif criterio == 'Ref_ISE':
+
+    elif criterio == 'Ref_ITAE':
+        kc = (0.965/k)*(t0/tao)**-0.855
+        ki = tao/(0.796-0.147*(t0/tao))
+        kd = 0.308*tao*(t0/tao)**0.9292
+
+    elif criterio == 'Per_IAE':
+        kc =(1.435/k)*(t0/tao)**-0.921
+        ki = (tao/0.878)*(t0/tao)**0.749
+        kd = 0.482*tao*(t0/tao)**1.137
+
+    elif criterio == 'Per_ISE':
+        kc =(1.495/k)*(t0/tao)**-0.945
+        ki = (tao/1.101)*(t0/tao)**0.771
+        kd = 0.560*tao*(t0/tao)**1.006
+
+    elif criterio == 'Per_ITAE':
+        kc =(1.357/k)*(t0/tao)**-0.947
+        ki = (tao/0.842)*(t0/tao)**0.738
+        kd = 0.381*tao*(t0/tao)**0.995
+
+    return kc,ki,kd
 
 def reset_systems():
     global last_y
@@ -115,6 +144,10 @@ def reset_systems():
     memoization_ARX = [-1 for i in range(0, 1000)]
 
 if(__name__ == "__main__"):
+
+    kc,ki,kd = calculate_criterios("Per_ITAE", 1, 1, 1)
+    print(kc,ki,kd)
+    '''
     # a1, a2, a3....
     a = [0.8825,0]
     # b0, b1, b2....
@@ -128,4 +161,5 @@ if(__name__ == "__main__"):
     for i in range(0,6):
         print('k: ' + str(i))
         ARX_filter(2,a,b,delay,i,input_to_the_system)
-        
+    '''
+
