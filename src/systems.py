@@ -3,7 +3,7 @@ calculate ARX filter systems and first order systems '''
 import math
 
 # AUX for memoization
-memoization_ARX = [-1 for i in range(0, 1000)]
+memoization_ARX = [-1 for i in range(0, 8000)]
 
 last_y = 0
 
@@ -41,7 +41,7 @@ def calculate_input_to_the_system(k, input_to_the_system):
         print("fallo el calculo del input con i " + str(k) + identifier)
 
 
-def calculate_y_k_alternative(k, a1, b1, b2, N, input_to_the_system):
+def calculate_y_k_alternative(k, a1, b1, b2, N, input_to_the_system, perturbacion_interna_value):
     global last_y
     if(k < 0):
         return 0
@@ -50,10 +50,10 @@ def calculate_y_k_alternative(k, a1, b1, b2, N, input_to_the_system):
     last_y = a1 * last_y + b1 * calculate_input_to_the_system(
         k - 1 - N, input_to_the_system) + b2 * calculate_input_to_the_system(k - 2 - N, input_to_the_system)
 
-    return last_y
+    return last_y + perturbacion_interna_value
 
 
-def primer_orden(T, tau, gain, k, theta_prima, input_to_the_system):
+def primer_orden(T, tau, gain, k, theta_prima, input_to_the_system, perturbacion_interna_value):
     '''
     T : periodo
     tau: tau del sistema
@@ -64,11 +64,11 @@ def primer_orden(T, tau, gain, k, theta_prima, input_to_the_system):
     '''
     print("Funcion de primer orden")
     a1, b1, b2, N = calculate_a1_b1_b2_N(T, tau, gain, theta_prima)
-    return calculate_y_k_alternative(k, a1, b1, b2, N, input_to_the_system), calculate_input_to_the_system(
+    return calculate_y_k_alternative(k, a1, b1, b2, N, input_to_the_system,perturbacion_interna_value), calculate_input_to_the_system(
         k, input_to_the_system)
 
 
-def calculate_c_ARX(number_of_coefficients, a_values, b_values, delay, k, input_to_the_system):
+def calculate_c_ARX(number_of_coefficients, a_values, b_values, delay, k, input_to_the_system, perturbacion_interna_value):
     if(k < 0):
         return 0
     if(memoization_ARX[k] != -1):
@@ -77,16 +77,16 @@ def calculate_c_ARX(number_of_coefficients, a_values, b_values, delay, k, input_
     value_at_k = 0
     for i in range(0, number_of_coefficients):
         value_at_k += a_values[i]*calculate_c_ARX(
-            number_of_coefficients, a_values, b_values, delay, k - i - 1, input_to_the_system)
+            number_of_coefficients, a_values, b_values, delay, k - i - 1, input_to_the_system, perturbacion_interna_value)
         if(i == 1):
             print("Estoy con el coefficiente 1")
         value_at_k += b_values[i] * \
             calculate_input_to_the_system(k - delay - i, input_to_the_system)
-    memoization_ARX[k] = value_at_k
-    return value_at_k
+    memoization_ARX[k] = value_at_k + perturbacion_interna_value
+    return value_at_k + perturbacion_interna_value
 
 
-def ARX_filter(number_of_coefficients, a_values, b_values, delay, k, input_to_the_system):
+def ARX_filter(number_of_coefficients, a_values, b_values, delay, k, input_to_the_system, perturbacion_interna_value):
     '''
     number_of_coefficients: cantidad de a's y b's en la ecuacion de diferencias
     a_values: coeficientes de a
@@ -99,11 +99,11 @@ def ARX_filter(number_of_coefficients, a_values, b_values, delay, k, input_to_th
     if(k < 0):
         print("Invalid value of k")
     print(calculate_c_ARX(number_of_coefficients, a_values,
-                          b_values, delay, k, input_to_the_system))
+                          b_values, delay, k, input_to_the_system, perturbacion_interna_value))
 
 
 
-    return calculate_c_ARX(number_of_coefficients, a_values,b_values, delay, k, input_to_the_system), calculate_input_to_the_system(
+    return calculate_c_ARX(number_of_coefficients, a_values,b_values, delay, k, input_to_the_system, perturbacion_interna_value), calculate_input_to_the_system(
         k, input_to_the_system)
 
 def calculate_criterios(criterio, k, t0, tao):
@@ -141,7 +141,7 @@ def reset_systems():
     global last_y
     global memoization_ARX
     last_y = 0
-    memoization_ARX = [-1 for i in range(0, 1000)]
+    memoization_ARX = [-1 for i in range(0, 8000)]
 
 if(__name__ == "__main__"):
 

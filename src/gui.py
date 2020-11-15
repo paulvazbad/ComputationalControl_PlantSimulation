@@ -10,7 +10,8 @@ from systems import primer_orden, ARX_filter, reset_systems, calculate_criterios
 seconds = 0
 
 input_to_the_system = 0
-disturbance_value = 0
+perturbacion_de_salida_value = 0
+perturbacion_interna_value = 0
 tau_value = 1
 T_value = 1
 gain_value = 0
@@ -30,7 +31,7 @@ plant_type_flag = 0
 
 def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab):
     global input_to_the_system
-    global disturbance_value
+    global perturbacion_de_salida_value
     global tau_value
     global T_value
     global gain_value
@@ -60,10 +61,10 @@ def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab):
     print("Perturbacion")
     if perturbacionHab.get() == 0:
         print("No hay Perturbacion")
-        disturbance_value = 0
+        perturbacion_de_salida_value = 0
     elif perturbacionHab.get() == 1:
         print(magnitud_escalon_per.get())
-        disturbance_value = float(magnitud_escalon_per.get())
+        perturbacion_de_salida_value = float(magnitud_escalon_per.get())
 
     print("Planta")
     if tipoDePlanta.get() == 0:
@@ -193,11 +194,11 @@ def entrada():
         row=entrada_row + 2, column=1 + 1)
 
 
-def perturbacion():
+def perturbacion_de_salida():
     per_row = 12
     per_col = 2
 
-    tk.Label(ventana, text="Perturbacion",
+    tk.Label(ventana, text="Perturbacion de salida",
              font="Verdana 10 bold").grid(row=per_row, column=2)
 
     check_box = tk.Checkbutton(
@@ -297,7 +298,7 @@ magnitud_escalon_per = tk.Entry(ventana)
 
 planta()
 entrada()
-perturbacion()
+perturbacion_de_salida()
 constantes()
 final_buttons()
 
@@ -336,7 +337,7 @@ while True:
 
     ax.plot(x, y, 'r-')
     ax_input.plot(x, y_input, 'r-')
-    #ax.scatter(seconds, y + disturbance_value)
+    #ax.scatter(seconds, y + perturbacion_de_salida_value)
     plt.pause(0.05)
     ticks += 0.05
     chart_type.draw()
@@ -346,16 +347,16 @@ while True:
         if(ticks >= 0.1):
             if plant_type_flag == 0:
                 y_value, y_input_val = primer_orden(T_value, tau_value, gain_value,
-                                       seconds, theta_prima_value, input_to_the_system)
+                                       seconds, theta_prima_value, input_to_the_system, perturbacion_interna_value)
             elif plant_type_flag == 1:
 
                 print(number_of_coefficients, a_list, b_list, d_value, seconds, input_to_the_system)
-                y_value, y_input_val = ARX_filter(number_of_coefficients, a_list, b_list, d_value, seconds, input_to_the_system )
+                y_value, y_input_val = ARX_filter(number_of_coefficients, a_list, b_list, d_value, seconds, input_to_the_system,perturbacion_interna_value )
 
-            ax.set_title("Output: {}".format(y_value + disturbance_value))
+            ax.set_title("Output: {}".format(y_value + perturbacion_de_salida_value))
             ax_input.set_title("Input: {}".format(y_input_val))
 
-            y.append(y_value + disturbance_value)
+            y.append(y_value + perturbacion_de_salida_value)
             y_input.append(y_input_val)
             x.append(seconds)
             if(seconds >=X_RANGE):
