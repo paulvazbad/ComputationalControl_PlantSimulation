@@ -28,10 +28,17 @@ y = []
 start_graphing = False
 plant_type_flag = 0
 
+## PID variables
+reference = 0
+error = 0
+mk = 0
+salida_del_pid = 0
 
-def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab):
+
+def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab, perturbacionInterna):
     global input_to_the_system
     global perturbacion_de_salida_value
+    global perturbacion_interna_value
     global tau_value
     global T_value
     global gain_value
@@ -65,6 +72,14 @@ def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab):
     elif perturbacionHab.get() == 1:
         print(magnitud_escalon_per.get())
         perturbacion_de_salida_value = float(magnitud_escalon_per.get())
+
+    if perturbacionInterna.get() == 0:
+        print("No hay Perturbacion")
+        perturbacion_interna_value = 0
+    elif perturbacionInterna.get() == 1:
+        print(magnitud_escalon_per_interna.get())
+        perturbacion_interna_value = float(magnitud_escalon_per_interna.get())
+
 
     print("Planta")
     if tipoDePlanta.get() == 0:
@@ -180,7 +195,7 @@ def entrada():
     entrada_col = 2
 
     tk.Label(ventana, text="Entrada", font="Verdana 10 bold").grid(
-        row=entrada_row, column=2)
+        row=entrada_row, column=1)
     tk.Radiobutton(ventana, text="Escalon", variable=tipoDeEntrada,
                    value=0).grid(row=entrada_row+1, column=1)
     tk.Radiobutton(ventana, text="Archivo", variable=tipoDeEntrada,
@@ -199,7 +214,7 @@ def perturbacion_de_salida():
     per_col = 2
 
     tk.Label(ventana, text="Perturbacion de salida",
-             font="Verdana 10 bold").grid(row=per_row, column=2)
+             font="Verdana 10 bold").grid(row=per_row, column=1)
 
     check_box = tk.Checkbutton(
         ventana, text="Activar", variable=perturbacionHab, onvalue=1, offvalue=0)
@@ -209,11 +224,27 @@ def perturbacion_de_salida():
         row=per_row + 1, column=per_col - 2)
     magnitud_escalon_per.grid(row=per_row + 1, column=per_col - 1)
 
+def perturbacion_interna():
+    per_row = 15
+    per_col = 2
+
+    tk.Label(ventana, text="Perturbacion interna",
+             font="Verdana 10 bold").grid(row=per_row, column=1)
+
+    check_box = tk.Checkbutton(
+        ventana, text="Activar", variable=perturbacionInterna, onvalue=1, offvalue=0)
+    check_box.grid(row=per_row + 1, column=2)
+
+    etiqueta_magnitud_perturbacion_interna = tk.Label(ventana, text="Magnitud").grid(
+        row=per_row + 1, column=per_col - 2)
+
+    magnitud_escalon_per_interna.grid(row=per_row + 1, column=per_col - 1)
+
 
 
 def constantes():
 
-    per_row = 14
+    per_row = 17
     per_col = 2
 
     check_box = tk.Checkbutton(
@@ -244,13 +275,6 @@ def constantes():
     ki_tb.grid(row=per_row + 5, column=per_col - 1)
     kd_tb.grid(row=per_row + 6, column=per_col - 1)
 
-    
-
-
-
-
-
-
 
 
 
@@ -260,7 +284,7 @@ def final_buttons():
              font="Verdana 10 bold").grid(row=17, column=5)
 
     tk.Button(ventana, text="Enter", command=lambda: enter(
-        tipoDePlanta, tipoDeEntrada, perturbacionHab)).grid(row=18, column=3)
+        tipoDePlanta, tipoDeEntrada, perturbacionHab, perturbacionInterna)).grid(row=18, column=3)
     tk.Button(ventana, text="Reset", command=reset).grid(row=18, column=4)
 
 
@@ -270,6 +294,7 @@ ventana.geometry("1500x1000")
 tipoDePlanta = tk.IntVar()
 tipoDeEntrada = tk.IntVar()
 perturbacionHab = tk.IntVar()
+perturbacionInterna = tk.IntVar()
 manualAutomatico = tk.IntVar()
 
 tipoMetodo = tk.StringVar()
@@ -290,6 +315,7 @@ d = tk.Entry(ventana)
 
 magnitud_escalon = tk.Entry(ventana)
 magnitud_escalon_per = tk.Entry(ventana)
+magnitud_escalon_per_interna = tk.Entry(ventana)
 
 
 
@@ -299,6 +325,7 @@ magnitud_escalon_per = tk.Entry(ventana)
 planta()
 entrada()
 perturbacion_de_salida()
+perturbacion_interna()
 constantes()
 final_buttons()
 
@@ -344,13 +371,28 @@ while True:
     chart_type_input.draw()
 
     if start_graphing:
+        # Decidir el tipo de input dependiendo si automatico o Manual
+        if(manualAutomatico.get()==0):
+            #Modo manual (by default)
+            mk = input_to_the_system
+            reference = y_value
+            
+        else:
+            # TODO: reference field en el UI 
+            salida_del_pid = input_to_the_system
+            mk = salida_del_pid
+            print("Meter valor del pid y la referencia")
+
+        error = y_value - reference
+        print("Error" + str(error))
+
+
         if(ticks >= 0.1):
             if plant_type_flag == 0:
                 y_value, y_input_val = primer_orden(T_value, tau_value, gain_value,
-                                       seconds, theta_prima_value, input_to_the_system, perturbacion_interna_value)
+                                       seconds, theta_prima_value, mk, perturbacion_interna_value)
             elif plant_type_flag == 1:
-
-                print(number_of_coefficients, a_list, b_list, d_value, seconds, input_to_the_system)
+                print(number_of_coefficients, a_list, b_list, d_value, seconds, mk)
                 y_value, y_input_val = ARX_filter(number_of_coefficients, a_list, b_list, d_value, seconds, input_to_the_system,perturbacion_interna_value )
 
             ax.set_title("Output: {}".format(y_value + perturbacion_de_salida_value))
