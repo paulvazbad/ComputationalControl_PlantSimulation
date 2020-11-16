@@ -249,7 +249,7 @@ def constantes():
 
     check_box = tk.Checkbutton(
         ventana, text="Manual/Automatico", variable=manualAutomatico, onvalue=1, offvalue=0)
-    check_box.grid(row=per_row + 2, column=1)
+    check_box.grid(row=per_row + 1, column=1)
 
     per_row += 1
 
@@ -331,17 +331,17 @@ final_buttons()
 
 
 
-figure = plt.Figure(figsize=(6, 3), dpi=100)
+figure = plt.Figure(figsize=(5, 4), dpi=100)
 ax = figure.add_subplot(111)
 chart_type = FigureCanvasTkAgg(figure, ventana)
-chart_type.get_tk_widget().grid(row=22, column=6)
+chart_type.get_tk_widget().grid(row=25, column=6)
 
 
 
-figure_input = plt.Figure(figsize=(6, 3), dpi=100)
+figure_input = plt.Figure(figsize=(5, 4), dpi=100)
 ax_input = figure_input.add_subplot(111)
 chart_type_input = FigureCanvasTkAgg(figure_input, ventana)
-chart_type_input.get_tk_widget().grid(row=23, column=6)
+chart_type_input.get_tk_widget().grid(row=25, column=7)
 
 ax.set_title("Output")
 ax_input.set_title("Input")
