@@ -100,11 +100,7 @@ def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab, perturbacionInterna):
         b_list = [ float(x) for x in b.get().split(",")]
         d_value = int(d.get())
 
-    kc,kd,ki = calculate_criterios(str(tipoMetodo.get()), float(gain.get()), float(thetaprima.get()), float(tao.get()))
-
-    var_kc.set(kc)
-    var_kd.set(kd)
-    var_ki.set(ki)
+    
 
 
 def reset():
@@ -275,6 +271,13 @@ def constantes():
     ki_tb.grid(row=per_row + 5, column=per_col - 1)
     kd_tb.grid(row=per_row + 6, column=per_col - 1)
 
+def cal_cons():
+    kc,kd,ki = calculate_criterios(str(tipoMetodo.get()), float(gain.get()), float(thetaprima.get()), float(tao.get()))
+
+    var_kc.set(kc)
+    var_kd.set(kd)
+    var_ki.set(ki)
+
 
 
 
@@ -286,6 +289,7 @@ def final_buttons():
     tk.Button(ventana, text="Enter", command=lambda: enter(
         tipoDePlanta, tipoDeEntrada, perturbacionHab, perturbacionInterna)).grid(row=18, column=3)
     tk.Button(ventana, text="Reset", command=reset).grid(row=18, column=4)
+    tk.Button(ventana, text="Calcular Constantes", command=cal_cons).grid(row=18, column=2)
 
 
 ventana = tk.Tk()
@@ -318,16 +322,16 @@ magnitud_escalon_per = tk.Entry(ventana)
 magnitud_escalon_per_interna = tk.Entry(ventana)
 
 
-
-
-
-
 planta()
 entrada()
 perturbacion_de_salida()
 perturbacion_interna()
 constantes()
 final_buttons()
+
+
+figure_out, axes_out = plt.subplots(nrows=2, ncols =1, figsize=(8,5))
+
 
 
 
@@ -342,6 +346,12 @@ figure_input = plt.Figure(figsize=(5, 4), dpi=100)
 ax_input = figure_input.add_subplot(111)
 chart_type_input = FigureCanvasTkAgg(figure_input, ventana)
 chart_type_input.get_tk_widget().grid(row=25, column=7)
+
+axes_out[0].set_title("Output")
+axes_out[1].set_title("Input")
+axes_out[0].set_ylim([0,60])
+axes_out[1].set_ylim([0,60])
+
 
 ax.set_title("Output")
 ax_input.set_title("Input")
@@ -364,6 +374,11 @@ while True:
 
     ax.plot(x, y, 'r-')
     ax_input.plot(x, y_input, 'r-')
+
+    axes_out[0].axis([seconds - X_RANGE , seconds, 0 , 100])
+    axes_out[1].axis([seconds - X_RANGE , seconds, 0 , 100])
+    
+
     #ax.scatter(seconds, y + perturbacion_de_salida_value)
     plt.pause(0.05)
     ticks += 0.05
@@ -371,6 +386,9 @@ while True:
     chart_type_input.draw()
 
     if start_graphing:
+        axes_out[0].plot(x, y, 'r-')
+        axes_out[1].plot(x, y_input, 'r-')
+        figure_out.tight_layout()
         # Decidir el tipo de input dependiendo si automatico o Manual
         if(manualAutomatico.get()==0):
             #Modo manual (by default)
@@ -397,6 +415,9 @@ while True:
 
             ax.set_title("Output: {}".format(y_value + perturbacion_de_salida_value))
             ax_input.set_title("Input: {}".format(y_input_val))
+
+            axes_out[0].set_title("Output: {}".format(y_value + perturbacion_de_salida_value))
+            axes_out[1].set_title("Input: {}".format(y_input_val))
 
             y.append(y_value + perturbacion_de_salida_value)
             y_input.append(y_input_val)
