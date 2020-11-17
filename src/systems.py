@@ -7,6 +7,9 @@ memoization_ARX = [-1 for i in range(0, 8000)]
 
 last_y = 0
 
+##Previous errors 0 = Error(-1), 1 = Error(-2)  
+previous_errors = [0,0]
+previous_pid_output = 0
 
 def calculate_a1_b1_b2_N(T, tau, gain, theta_prima):
     '''
@@ -137,16 +140,38 @@ def calculate_criterios(criterio, k, t0, tao):
 
     return kc,ki,kd
 
+def calculate_salida_del_pid(T,kc,ki,kd,error):
+    global previous_errors
+    global previous_pid_output
+    #TODO: Ask how to calculate mk with a digital pid
+    beta_0 = kc * (1.0 + T/ki + kd/T) 
+    beta_1 = kc * (-1.0 - (2.0*kd/T))
+    beta_2 = kc*(kd/T)
+
+    new_pid_output = previous_pid_output + beta_0 * error + beta_1 * previous_errors[0] + beta_2 * previous_errors[1]
+
+    #Save previous errors
+    previous_errors[1] = previous_errors[0]
+    previous_errors[0] = error
+    previous_pid_output = new_pid_output
+    return new_pid_output
+
+
+
 def reset_systems():
     global last_y
     global memoization_ARX
+    global previous_errors
+    global previous_pid_output
     last_y = 0
     memoization_ARX = [-1 for i in range(0, 8000)]
+    previous_errors = [0 , 0]
+    previous_pid_output = 0
 
 if(__name__ == "__main__"):
 
-    kc,ki,kd = calculate_criterios("Per_ITAE", 1, 1, 1)
-    print(kc,ki,kd)
+    #kc,ki,kd = calculate_criterios("Per_ITAE", 1, 1, 1)
+    #print(kc,ki,kd)
     '''
     # a1, a2, a3....
     a = [0.8825,0]

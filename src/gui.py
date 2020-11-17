@@ -5,12 +5,12 @@ import csv
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-from systems import primer_orden, ARX_filter, reset_systems, calculate_criterios
+from systems import primer_orden, ARX_filter, reset_systems, calculate_criterios, calculate_salida_del_pid
 
 seconds = 0
 
 input_to_the_system = 0
-perturbacion_de_salida_value = 0
+perturbacion_de_entrada_value = 0
 perturbacion_interna_value = 0
 tau_value = 1
 T_value = 1
@@ -28,16 +28,17 @@ y = []
 start_graphing = False
 plant_type_flag = 0
 
-## PID variables
+# PID variables
 reference = 0
 error = 0
 mk = 0
 salida_del_pid = 0
+manualAutomatico_value = False  
 
 
 def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab, perturbacionInterna):
     global input_to_the_system
-    global perturbacion_de_salida_value
+    global perturbacion_de_entrada_value
     global perturbacion_interna_value
     global tau_value
     global T_value
@@ -49,6 +50,7 @@ def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab, perturbacionInterna):
     global number_of_coefficients
     global start_graphing
     global plant_type_flag
+    global manualAutomatico_value
 
     start_graphing = True
     plant_type_flag = tipoDePlanta.get()
@@ -65,21 +67,21 @@ def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab, perturbacionInterna):
 
         input_to_the_system = content
 
-    print("Perturbacion")
+    print("Perturbacion de entrada")
     if perturbacionHab.get() == 0:
         print("No hay Perturbacion")
-        perturbacion_de_salida_value = 0
+        perturbacion_de_entrada_value = 0
     elif perturbacionHab.get() == 1:
         print(magnitud_escalon_per.get())
-        perturbacion_de_salida_value = float(magnitud_escalon_per.get())
+        perturbacion_de_entrada_value = float(magnitud_escalon_per.get())
 
+    print("Perturbacion interna")
     if perturbacionInterna.get() == 0:
         print("No hay Perturbacion")
         perturbacion_interna_value = 0
     elif perturbacionInterna.get() == 1:
         print(magnitud_escalon_per_interna.get())
         perturbacion_interna_value = float(magnitud_escalon_per_interna.get())
-
 
     print("Planta")
     if tipoDePlanta.get() == 0:
@@ -96,12 +98,11 @@ def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab, perturbacionInterna):
     elif tipoDePlanta.get() == 1:
 
         number_of_coefficients = int(coe.get())
-        a_list = [ float(x) for x in a.get().split(",")]
-        b_list = [ float(x) for x in b.get().split(",")]
+        a_list = [float(x) for x in a.get().split(",")]
+        b_list = [float(x) for x in b.get().split(",")]
         d_value = int(d.get())
 
-    
-
+    manualAutomatico_value = manualAutomatico.get()
 
 def reset():
     global x
@@ -109,18 +110,20 @@ def reset():
     global y_input
     global seconds
     global start_graphing
+    global error
 
     start_graphing = False
     x = []
     y = []
     y_input = []
+    error = 0
     ax.clear()
     ax_input.clear()
     seconds = 0
     ax.set_title("Output")
     ax_input.set_title("Input")
-    ax.set_ylim([0,60])
-    ax_input.set_ylim([0,60])
+    ax.set_ylim([0, 60])
+    ax_input.set_ylim([0, 60])
     reset_systems()
 
 
@@ -177,11 +180,11 @@ def buscar_archivo():
 
     if file is not None:
         content = file.read()
-        content = content.decode("utf-8") 
+        content = content.decode("utf-8")
         content = content.splitlines()
         content = [float(i) for i in content]
 
-        print (content)
+        print(content)
         return content
     print("no se pudo acceder al archivo")
 
@@ -205,11 +208,11 @@ def entrada():
         row=entrada_row + 2, column=1 + 1)
 
 
-def perturbacion_de_salida():
+def perturbacion_de_entrada():
     per_row = 12
     per_col = 2
 
-    tk.Label(ventana, text="Perturbacion de salida",
+    tk.Label(ventana, text="Perturbacion de entrada",
              font="Verdana 10 bold").grid(row=per_row, column=1)
 
     check_box = tk.Checkbutton(
@@ -219,6 +222,7 @@ def perturbacion_de_salida():
     etiqueta_magnitud_escalon = tk.Label(ventana, text="Magnitud").grid(
         row=per_row + 1, column=per_col - 2)
     magnitud_escalon_per.grid(row=per_row + 1, column=per_col - 1)
+
 
 def perturbacion_interna():
     per_row = 15
@@ -237,7 +241,6 @@ def perturbacion_interna():
     magnitud_escalon_per_interna.grid(row=per_row + 1, column=per_col - 1)
 
 
-
 def constantes():
 
     per_row = 17
@@ -249,36 +252,38 @@ def constantes():
 
     per_row += 1
 
-    choices = { 'Ref_IAE', 'Ref_ISE', 'Ref_ITAE', 'Per_IAE', 'Per_ISE', 'Per_ITAE'}
+    choices = {'Ref_IAE', 'Ref_ISE', 'Ref_ITAE',
+               'Per_IAE', 'Per_ISE', 'Per_ITAE'}
 
     popupMenu = tk.OptionMenu(ventana, tipoMetodo, *choices)
 
     popupMenu.grid(row=per_row + 3, column=per_col - 1)
 
-    etiqueta_constantesPID= tk.Label(ventana, text="Criterio de Sintonía").grid(
+    etiqueta_constantesPID = tk.Label(ventana, text="Criterio de Sintonía").grid(
         row=per_row + 3, column=per_col - 2)
 
-    
     tk.Label(ventana, text="Kc: ").grid(row=per_row + 4, column=per_col - 2)
     tk.Label(ventana, text="Kd: ").grid(row=per_row + 5, column=per_col - 2)
     tk.Label(ventana, text="Ki: ").grid(row=per_row + 6, column=per_col - 2)
 
-    kc_tb = tk.Entry(ventana, text = var_kc)
-    ki_tb = tk.Entry(ventana, text = var_kd)
-    kd_tb = tk.Entry(ventana, text = var_ki)
+    kc_tb = tk.Entry(ventana, text=var_kc)
+    ki_tb = tk.Entry(ventana, text=var_kd)
+    kd_tb = tk.Entry(ventana, text=var_ki)
 
     kc_tb.grid(row=per_row + 4, column=per_col - 1)
     ki_tb.grid(row=per_row + 5, column=per_col - 1)
     kd_tb.grid(row=per_row + 6, column=per_col - 1)
 
+
 def cal_cons():
-    kc,kd,ki = calculate_criterios(str(tipoMetodo.get()), float(gain.get()), float(thetaprima.get()), float(tao.get()))
+    if not gain.get() or not thetaprima.get() or not tao.get():
+        return
+    kc, kd, ki = calculate_criterios(str(tipoMetodo.get()), float(
+        gain.get()), float(thetaprima.get()), float(tao.get()))
 
     var_kc.set(kc)
     var_kd.set(kd)
     var_ki.set(ki)
-
-
 
 
 def final_buttons():
@@ -289,7 +294,8 @@ def final_buttons():
     tk.Button(ventana, text="Enter", command=lambda: enter(
         tipoDePlanta, tipoDeEntrada, perturbacionHab, perturbacionInterna)).grid(row=18, column=3)
     tk.Button(ventana, text="Reset", command=reset).grid(row=18, column=4)
-    tk.Button(ventana, text="Calcular Constantes", command=cal_cons).grid(row=18, column=2)
+    tk.Button(ventana, text="Calcular Constantes",
+              command=cal_cons).grid(row=18, column=2)
 
 
 ventana = tk.Tk()
@@ -303,9 +309,9 @@ manualAutomatico = tk.IntVar()
 
 tipoMetodo = tk.StringVar()
 
-var_kc = tk.IntVar()
-var_kd = tk.IntVar()
-var_ki = tk.IntVar()
+var_kc = tk.DoubleVar()
+var_kd = tk.DoubleVar()
+var_ki = tk.DoubleVar()
 
 
 gain = tk.Entry(ventana)
@@ -324,22 +330,19 @@ magnitud_escalon_per_interna = tk.Entry(ventana)
 
 planta()
 entrada()
-perturbacion_de_salida()
+perturbacion_de_entrada()
 perturbacion_interna()
 constantes()
 final_buttons()
 
 
-figure_out, axes_out = plt.subplots(nrows=2, ncols =1, figsize=(8,5))
-
-
+figure_out, axes_out = plt.subplots(nrows=2, ncols=1, figsize=(8, 5))
 
 
 figure = plt.Figure(figsize=(5, 4), dpi=100)
 ax = figure.add_subplot(111)
 chart_type = FigureCanvasTkAgg(figure, ventana)
 chart_type.get_tk_widget().grid(row=25, column=6)
-
 
 
 figure_input = plt.Figure(figsize=(5, 4), dpi=100)
@@ -349,14 +352,14 @@ chart_type_input.get_tk_widget().grid(row=25, column=7)
 
 axes_out[0].set_title("Output")
 axes_out[1].set_title("Input")
-axes_out[0].set_ylim([0,60])
-axes_out[1].set_ylim([0,60])
+axes_out[0].set_ylim([0, 60])
+axes_out[1].set_ylim([0, 60])
 
 
 ax.set_title("Output")
 ax_input.set_title("Input")
-ax.set_ylim([0,60])
-ax_input.set_ylim([0,60])
+ax.set_ylim([0, 60])
+ax_input.set_ylim([0, 60])
 
 # number_of_coefficients, a_values, b_values, delay, k, input_to_the_system
 ticks = 0
@@ -369,17 +372,16 @@ while True:
 
     ventana.update_idletasks()
     ventana.update()
-    ax.axis([seconds - X_RANGE , seconds, 0 , 100])
-    ax_input.axis([seconds - X_RANGE , seconds, 0 , 100])
+    ax.axis([seconds - X_RANGE, seconds, 0, 100])
+    ax_input.axis([seconds - X_RANGE, seconds, 0, 100])
 
     ax.plot(x, y, 'r-')
     ax_input.plot(x, y_input, 'r-')
 
-    axes_out[0].axis([seconds - X_RANGE , seconds, 0 , 100])
-    axes_out[1].axis([seconds - X_RANGE , seconds, 0 , 100])
-    
+    axes_out[0].axis([seconds - X_RANGE, seconds, 0, 100])
+    axes_out[1].axis([seconds - X_RANGE, seconds, 0, 100])
 
-    #ax.scatter(seconds, y + perturbacion_de_salida_value)
+    #ax.scatter(seconds, y + perturbacion_de_entrada_value)
     plt.pause(0.05)
     ticks += 0.05
     chart_type.draw()
@@ -390,42 +392,46 @@ while True:
         axes_out[1].plot(x, y_input, 'r-')
         figure_out.tight_layout()
         # Decidir el tipo de input dependiendo si automatico o Manual
-        if(manualAutomatico.get()==0):
-            #Modo manual (by default)
-            mk = input_to_the_system
-            reference = y_value
+        print("Error" + str(error))
+        reference = y_value
+        if(manualAutomatico_value== 0):
+            # Modo manual (by default)
+            print("Modo Manual")
+            mk = input_to_the_system + perturbacion_de_entrada_value
             
         else:
-            # TODO: reference field en el UI 
-            salida_del_pid = input_to_the_system
-            mk = salida_del_pid
-            print("Meter valor del pid y la referencia")
-
-        error = y_value - reference
-        print("Error" + str(error))
-
-
+            # TODO: reference field en el UI
+            error = y_value - reference
+            print("Error" + str(error))
+            print("Modo Automatico")
+            salida_del_pid = calculate_salida_del_pid(
+                T_value, float(var_kc.get()), float(var_ki.get()), float(var_kd.get()), error)
+            mk = salida_del_pid + perturbacion_de_entrada_value
+       
         if(ticks >= 0.1):
             if plant_type_flag == 0:
                 y_value, y_input_val = primer_orden(T_value, tau_value, gain_value,
-                                       seconds, theta_prima_value, mk, perturbacion_interna_value)
+                                                    seconds, theta_prima_value, mk, perturbacion_interna_value)
             elif plant_type_flag == 1:
-                print(number_of_coefficients, a_list, b_list, d_value, seconds, mk)
-                y_value, y_input_val = ARX_filter(number_of_coefficients, a_list, b_list, d_value, seconds, input_to_the_system,perturbacion_interna_value )
+                print(number_of_coefficients, a_list,
+                      b_list, d_value, seconds, mk)
+                y_value, y_input_val = ARX_filter(
+                    number_of_coefficients, a_list, b_list, d_value, seconds, input_to_the_system, perturbacion_interna_value)
 
-            ax.set_title("Output: {}".format(y_value + perturbacion_de_salida_value))
+            ax.set_title("Output: {}".format(y_value))
             ax_input.set_title("Input: {}".format(y_input_val))
 
-            axes_out[0].set_title("Output: {}".format(y_value + perturbacion_de_salida_value))
+            axes_out[0].set_title("Output: {}".format(y_value))
             axes_out[1].set_title("Input: {}".format(y_input_val))
 
-            y.append(y_value + perturbacion_de_salida_value)
+            y.append(y_value)
             y_input.append(y_input_val)
             x.append(seconds)
-            if(seconds >=X_RANGE):
+            if(seconds >= X_RANGE):
                 y.pop(0)
                 x.pop(0)
                 y_input.pop(0)
             seconds += 1
             ticks = 0
+           
         # plt.show()
