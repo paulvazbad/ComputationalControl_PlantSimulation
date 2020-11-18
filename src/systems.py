@@ -116,7 +116,10 @@ def calculate_criterios(criterio, k, t0, tao):
         ki = tao/(0.74-0.13*(t0/tao))
         kd = 0.348*tao*(t0/tao)**0.914
 
-    #elif criterio == 'Ref_ISE':
+    elif criterio == 'Ref_ISE':
+        kc = 0
+        ki = 0
+        kd = 0
 
     elif criterio == 'Ref_ITAE':
         kc = (0.965/k)*(t0/tao)**-0.855
