@@ -484,10 +484,12 @@ while True:
         if(manualAutomatico_value== 0):
             # Modo manual (by default)
             print("Modo Manual")
+            ventana.title("Simulador: Modo Manual")
             mk = input_to_the_system + perturbacion_de_entrada_value
             
         else:
             # TODO: reference field en el UI
+            ventana.title("Simulador: Modo Automatico")
             error = y_value - reference
             print("Error" + str(error))
             print("Modo Automatico")
