@@ -44,6 +44,8 @@ kc_value = 0
 kd_value = 0
 ki_value  = 0
 
+content = []
+
 
 def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab, perturbacionInterna):
     global input_to_the_system
@@ -67,6 +69,8 @@ def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab, perturbacionInterna):
     global kd_value
     global ki_value
 
+    global content
+
     start_graphing = True
     plant_type_flag = tipoDePlanta.get()
 
@@ -76,10 +80,8 @@ def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab, perturbacionInterna):
         input_to_the_system = 0
         if(magnitud_escalon.get().isnumeric()):
             input_to_the_system = float(magnitud_escalon.get())
-    elif tipoDeEntrada.get() == 1:
-        content = buscar_archivo()
-        print(content)
 
+    elif tipoDeEntrada.get() == 1:
         input_to_the_system = content
 
     print("Perturbacion de entrada")
@@ -217,6 +219,8 @@ def planta():
 
 
 def buscar_archivo():
+    global content
+
     file = filedialog.askopenfile(
         parent=ventana, mode='rb', title='Choose a file')
 
@@ -226,8 +230,8 @@ def buscar_archivo():
         content = content.splitlines()
         content = [float(i) for i in content]
 
-        print(content)
-        return content
+        return
+
     print("no se pudo acceder al archivo")
 
 
@@ -287,7 +291,7 @@ def constantes():
 
     check_box = tk.Checkbutton(
         ventana, text="Manual/Automatico", variable=manualAutomatico, onvalue=1, offvalue=0)
-    check_box.grid(row=per_row + 1, column=0)
+    check_box.grid(row=0, column=0)
 
     per_row += 1
 
@@ -322,15 +326,17 @@ def constantes():
     tk.Button(ventana, text="Calcular Constantes",
               command=cal_cons).grid(row=per_row + 7, column= per_col - 1)
 
-
-    tk.Label(ventana, text="a's: ").grid(
+    tk.Label(ventana, text="Referencia: ").grid(
         row=per_row + 4, column=2, sticky = 'e')
-    tk.Label(ventana, text="b's: ").grid(
+    tk.Label(ventana, text="a's: ").grid(
         row=per_row + 5, column=2, sticky = 'e')
+    tk.Label(ventana, text="b's: ").grid(
+        row=per_row + 6, column=2, sticky = 'e')
 
-    
-    a_pid.grid(row=per_row + 4, column=3)
-    b_pid.grid(row=per_row + 5, column=3)
+    referencia_pid.grid(row=per_row + 4, column=3)
+    a_pid.grid(row=per_row + 5, column=3)
+    b_pid.grid(row=per_row + 6, column=3)
+
 
 
 def cal_cons():
@@ -386,6 +392,8 @@ a = tk.Entry(ventana)
 b = tk.Entry(ventana)
 d = tk.Entry(ventana)
 
+
+referencia_pid = tk.Entry(ventana)
 a_pid = tk.Entry(ventana)
 b_pid = tk.Entry(ventana)
 
@@ -484,7 +492,11 @@ while True:
         if(manualAutomatico_value== 0):
             # Modo manual (by default)
             print("Modo Manual")
-            mk = input_to_the_system + perturbacion_de_entrada_value
+
+            if tipoDeEntrada.get() == 0:
+                mk = input_to_the_system + perturbacion_de_entrada_value
+            else:
+                mk = input_to_the_system[seconds] + perturbacion_de_entrada_value
             
         else:
             # TODO: reference field en el UI
