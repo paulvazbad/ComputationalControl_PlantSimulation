@@ -7,9 +7,12 @@ memoization_ARX = [-1 for i in range(0, 8000)]
 
 last_y = 0
 
-##Previous errors 0 = Error(-1), 1 = Error(-2)  
-previous_errors = [0,0]
+# Previous errors 0 = Error(-1), 1 = Error(-2)
+previous_errors = [0, 0, 0, 0]
 previous_pid_output = 0
+
+previous_arx_controller_outputs = [0, 0, 0, 0]
+
 
 def calculate_a1_b1_b2_N(T, tau, gain, theta_prima):
     '''
@@ -67,7 +70,7 @@ def primer_orden(T, tau, gain, k, theta_prima, input_to_the_system, perturbacion
     '''
     print("Funcion de primer orden")
     a1, b1, b2, N = calculate_a1_b1_b2_N(T, tau, gain, theta_prima)
-    return calculate_y_k_alternative(k, a1, b1, b2, N, input_to_the_system,perturbacion_interna_value), calculate_input_to_the_system(
+    return calculate_y_k_alternative(k, a1, b1, b2, N, input_to_the_system, perturbacion_interna_value), calculate_input_to_the_system(
         k, input_to_the_system)
 
 
@@ -104,10 +107,9 @@ def ARX_filter(number_of_coefficients, a_values, b_values, delay, k, input_to_th
     print(calculate_c_ARX(number_of_coefficients, a_values,
                           b_values, delay, k, input_to_the_system, perturbacion_interna_value))
 
-
-
-    return calculate_c_ARX(number_of_coefficients, a_values,b_values, delay, k, input_to_the_system, perturbacion_interna_value), calculate_input_to_the_system(
+    return calculate_c_ARX(number_of_coefficients, a_values, b_values, delay, k, input_to_the_system, perturbacion_interna_value), calculate_input_to_the_system(
         k, input_to_the_system)
+
 
 def calculate_criterios(criterio, k, t0, tao):
 
@@ -127,39 +129,64 @@ def calculate_criterios(criterio, k, t0, tao):
         kd = 0.308*tao*(t0/tao)**0.9292
 
     elif criterio == 'Per_IAE':
-        kc =(1.435/k)*(t0/tao)**-0.921
+        kc = (1.435/k)*(t0/tao)**-0.921
         ki = (tao/0.878)*(t0/tao)**0.749
         kd = 0.482*tao*(t0/tao)**1.137
 
     elif criterio == 'Per_ISE':
-        kc =(1.495/k)*(t0/tao)**-0.945
+        kc = (1.495/k)*(t0/tao)**-0.945
         ki = (tao/1.101)*(t0/tao)**0.771
         kd = 0.560*tao*(t0/tao)**1.006
 
     elif criterio == 'Per_ITAE':
-        kc =(1.357/k)*(t0/tao)**-0.947
+        kc = (1.357/k)*(t0/tao)**-0.947
         ki = (tao/0.842)*(t0/tao)**0.738
         kd = 0.381*tao*(t0/tao)**0.995
 
-    return kc,ki,kd
+    return kc, ki, kd
 
-def calculate_salida_del_pid(T,kc,ki,kd,error):
+
+def calculate_salida_del_pid(T, kc, ki, kd, error):
     global previous_errors
     global previous_pid_output
-    #TODO: Ask how to calculate mk with a digital pid
-    beta_0 = kc * (1.0 + T/ki + kd/T) 
+    # TODO: Ask how to calculate mk with a digital pid
+    if(ki==0 or T==0):
+        print("Invalid PID!!!!!!!!!!!!!!")
+        return 0
+
+    beta_0 = kc * (1.0 + T/ki + kd/T)
     beta_1 = kc * (-1.0 - (2.0*kd/T))
     beta_2 = kc*(kd/T)
 
-    new_pid_output = previous_pid_output + beta_0 * error + beta_1 * previous_errors[0] + beta_2 * previous_errors[1]
+    new_pid_output = previous_pid_output + beta_0 * error + \
+        beta_1 * previous_errors[0] + beta_2 * previous_errors[1]
 
-    #Save previous errors
+    # Save previous errors
     previous_errors[1] = previous_errors[0]
     previous_errors[0] = error
     previous_pid_output = new_pid_output
     return new_pid_output
 
 
+def calculate_salida_arx_controller(alfas, betas, error):
+    global previous_errors
+    global previous_arx_controller_outputs
+    m = previous_arx_controller_outputs
+    new_arx_controller_output = 0
+    
+
+    for i in range(0,4):
+        new_arx_controller_output+=alfas[i+1]*m[i]
+        new_arx_controller_output+=betas[i+1]*previous_errors[i]
+        print("calculating i + " + str(i))
+    new_arx_controller_output+=betas[0]*error
+    
+    previous_arx_controller_outputs.insert(0,new_arx_controller_output)
+    previous_arx_controller_outputs.pop()
+    previous_errors.insert(0,error)
+    previous_errors.pop()
+
+    return new_arx_controller_output
 
 def reset_systems():
     global last_y
@@ -168,13 +195,14 @@ def reset_systems():
     global previous_pid_output
     last_y = 0
     memoization_ARX = [-1 for i in range(0, 8000)]
-    previous_errors = [0 , 0]
+    previous_errors = [0, 0]
     previous_pid_output = 0
+
 
 if(__name__ == "__main__"):
 
     #kc,ki,kd = calculate_criterios("Per_ITAE", 1, 1, 1)
-    #print(kc,ki,kd)
+    # print(kc,ki,kd)
     '''
     # a1, a2, a3....
     a = [0.8825,0]
@@ -185,9 +213,8 @@ if(__name__ == "__main__"):
     delay = 2
     k = 15
     input_to_the_system = [10, 10, 10,10]
-    
+
     for i in range(0,6):
         print('k: ' + str(i))
         ARX_filter(2,a,b,delay,i,input_to_the_system)
     '''
-

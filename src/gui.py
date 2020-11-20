@@ -8,7 +8,7 @@ matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-from systems import primer_orden, ARX_filter, reset_systems, calculate_criterios, calculate_salida_del_pid
+from systems import primer_orden, ARX_filter, reset_systems, calculate_criterios, calculate_salida_del_pid, calculate_salida_arx_controller
 
 seconds = 0
 
@@ -30,9 +30,10 @@ y = []
 
 start_graphing = False
 plant_type_flag = 0
+controller_type_flag = 0
 
 # PID variables
-reference = 0
+reference_enter = 0
 error = 0
 mk = 0
 salida_del_pid = 0
@@ -61,6 +62,7 @@ def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab, perturbacionInterna):
     global number_of_coefficients
     global start_graphing
     global plant_type_flag
+    global controller_type_flag
     global manualAutomatico_value
 
     global a_pid_list
@@ -68,12 +70,15 @@ def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab, perturbacionInterna):
     global kc_value
     global kd_value
     global ki_value
+    global reference_enter
 
     global content
 
     start_graphing = True
     plant_type_flag = tipoDePlanta.get()
+    controller_type_flag = tipoDePID.get()
 
+    reference_enter = reference.get()
     print("Entrada")
     if tipoDeEntrada.get() == 0:
         print(magnitud_escalon.get())
@@ -118,6 +123,7 @@ def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab, perturbacionInterna):
 
         number_of_coefficients = int(coe.get())
         a_list = [float(x) for x in a.get().split(",")]
+        a_list.insert(0,0)
         b_list = [float(x) for x in b.get().split(",")]
         d_value = int(d.get())
 
@@ -382,6 +388,7 @@ var_kc = tk.DoubleVar()
 var_kd = tk.DoubleVar()
 var_ki = tk.DoubleVar()
 
+reference = tk.DoubleVar()
 
 gain = tk.Entry(ventana)
 tao = tk.Entry(ventana)
@@ -393,7 +400,7 @@ b = tk.Entry(ventana)
 d = tk.Entry(ventana)
 
 
-referencia_pid = tk.Entry(ventana)
+referencia_pid = tk.Entry(ventana, text=reference)
 a_pid = tk.Entry(ventana)
 b_pid = tk.Entry(ventana)
 
@@ -486,13 +493,11 @@ while True:
         axes_out[1].plot(x, y_input, 'r-')
         #figure_out.tight_layout()
         
-        # Decidir el tipo de input dependiendo si automatico o Manual
-        print("Error" + str(error))
-        reference = y_value
+        
+        
         if(manualAutomatico_value== 0):
             # Modo manual (by default)
             print("Modo Manual")
-
             if tipoDeEntrada.get() == 0:
                 mk = input_to_the_system + perturbacion_de_entrada_value
             else:
@@ -501,13 +506,22 @@ while True:
         else:
             # TODO: reference field en el UI
             ventana.title("Simulador: Modo Automatico")
-            error = y_value - reference
+            error =  reference_enter - y_value
             print("Error" + str(error))
             print("Modo Automatico")
-            salida_del_pid = calculate_salida_del_pid(
-                T_value, float(var_kc.get()), float(var_ki.get()), float(var_kd.get()), error)
-            mk = salida_del_pid + perturbacion_de_entrada_value
-       
+
+            ##Decidir si pid o arx controller
+            if controller_type_flag == 0:
+                salida_del_pid = calculate_salida_del_pid(
+                    T_value, float(var_kc.get()), float(var_ki.get()), float(var_kd.get()), error)
+                mk = salida_del_pid + perturbacion_de_entrada_value
+                
+            else:
+                salida_arx_controller = calculate_salida_arx_controller(a_pid_list,b_pid_list,error)
+                mk = salida_arx_controller + perturbacion_de_entrada_value
+                
+            print("MK a meter" + str(mk))
+
         if(ticks >= 0.1):
             if plant_type_flag == 0:
                 y_value, y_input_val = primer_orden(T_value, tau_value, gain_value,
@@ -528,6 +542,12 @@ while True:
             y.append(y_value)
             y_input.append(y_input_val)
             x.append(seconds)
+            if(manualAutomatico_value==0):
+                reference.set(y_value)
+                reference_enter = y_value
+                print("Referencia  "+ str(reference.get()))
+                
+
             if(seconds >= X_RANGE):
                 y.pop(0)
                 x.pop(0)
