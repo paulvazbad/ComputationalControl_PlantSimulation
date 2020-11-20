@@ -25,7 +25,7 @@ def calculate_a1_b1_b2_N(T, tau, gain, theta_prima):
     theta = theta_prima - N*T
     m = 1 - (theta/T)
     a1 = math.exp((-T/tau))
-    b1 = gain * (1 - a1)
+    b1 = gain * (1 - math.exp((-m*T)/tau))
     b2 = gain * (math.exp(-(m*T)/tau) - a1)
     print(str(a1) + " y( k - 1)" + " + " + str(b1) +
           "m(k-1-N) + " + str(b2) + "m(k-2-N)" + "donde N es " + str(N))

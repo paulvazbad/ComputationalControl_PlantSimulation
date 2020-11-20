@@ -27,8 +27,10 @@ d_value = 0
 
 x = []
 y = []
+referencias = []
 
 start_graphing = False
+legends_in_plots = False
 plant_type_flag = 0
 controller_type_flag = 0
 
@@ -78,7 +80,7 @@ def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab, perturbacionInterna):
     plant_type_flag = tipoDePlanta.get()
     controller_type_flag = tipoDePID.get()
 
-    reference_enter = reference.get()
+    reference_enter = reference.get() if reference.get() else 0
     print("Entrada")
     if tipoDeEntrada.get() == 0:
         print(magnitud_escalon.get())
@@ -149,10 +151,12 @@ def reset():
     global seconds
     global start_graphing
     global error
+    global referencias
 
     start_graphing = False
     x = []
     y = []
+    referencias = []
     y_input = []
     error = 0
     seconds = 0
@@ -163,6 +167,7 @@ def reset():
     axes_out[1].set_title("Input")
     axes_out[0].set_ylim([0, 60])
     axes_out[1].set_ylim([0, 60])
+    legends_in_plots = False
     
     """
     ax.clear()
@@ -460,6 +465,7 @@ axes_out[0].set_ylim([0, 60])
 axes_out[1].set_ylim([0, 60])
 
 
+
 while True:
 
     ventana.update_idletasks()
@@ -486,11 +492,21 @@ while True:
 
     if start_graphing:
         
-        axes_out[0].axis([seconds - X_RANGE, seconds, 0, 100])
-        axes_out[1].axis([seconds - X_RANGE, seconds, 0, 100])
+        axes_out[0].axis([seconds - X_RANGE, seconds, 0, 2*(y_value+5)])
+        axes_out[1].axis([seconds - X_RANGE, seconds, 0, 2*(y_value+5)])
 
-        axes_out[0].plot(x, y, 'r-')
-        axes_out[1].plot(x, y_input, 'r-')
+        axes_out[0].plot(x, y, 'r-',label="Ck")
+        axes_out[0].plot(x,referencias,'g',label="Rx")
+        axes_out[1].plot(x, y_input, 'b', label="Mk")
+        #axes_out[0].autoscale()
+        #axes_out[1].autoscale()
+
+        if not(legends_in_plots):
+            axes_out[0].legend()
+            axes_out[1].legend()
+            legends_in_plots= True
+
+        
         #figure_out.tight_layout()
         
         
@@ -546,12 +562,14 @@ while True:
                 reference.set(y_value)
                 reference_enter = y_value
                 print("Referencia  "+ str(reference.get()))
-                
+            
+            referencias.append(reference_enter)
 
             if(seconds >= X_RANGE):
                 y.pop(0)
                 x.pop(0)
                 y_input.pop(0)
+                referencias.pop(0)
             seconds += 1
             ticks = 0
            
