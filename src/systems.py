@@ -14,6 +14,7 @@ previous_pid_output = 0
 previous_arx_controller_outputs = [0, 0, 0, 0]
 
 inputs = []
+MAX_LEN_INPUTS = 15
 
 def calculate_a1_b1_b2_N(T, tau, gain, theta_prima):
     '''
@@ -33,8 +34,13 @@ def calculate_a1_b1_b2_N(T, tau, gain, theta_prima):
     return (a1, b1, b2, N)
 
 
-def calculate_input_to_the_system(k, input_to_the_system):
+
+
+
+def calculate_input_to_the_system(k, input_to_the_system,desplazamiento):
     global inputs
+    global MAX_LEN_INPUTS
+
     # TODO: Check with professor if before 0 we assume 0, consider theta_prima
     if(k < 0):
         return 0
@@ -45,6 +51,8 @@ def calculate_input_to_the_system(k, input_to_the_system):
             return input_to_the_system[int(k)]
         else:
             print(inputs)
+            k = k - desplazamiento
+            #print("REAL EN EL ARR K " + str(k))
             # TODO: input to the system is not hardcoded
             return inputs[k]
     except Exception as identifier:
@@ -53,16 +61,20 @@ def calculate_input_to_the_system(k, input_to_the_system):
 
 def calculate_y_k_alternative(k, a1, b1, b2, N, input_to_the_system, perturbacion_interna_value):
     global last_y
+    global MAX_LEN_INPUTS
+    desplazamiento = 0
+    if(k > MAX_LEN_INPUTS):
+        desplazamiento = k - MAX_LEN_INPUTS
     if(k < 0):
         return 0
 
     # TODO: Test b2
     print("Voy a usar: ")
     print("b1 " + str( k-1-N)+" " + str(calculate_input_to_the_system(
-        k - 1 - N, input_to_the_system)))
-    print("b2 " + str( k-2-N)+" " + str( calculate_input_to_the_system(k - 2 - N, input_to_the_system)))
+        k - 1 - N, input_to_the_system,desplazamiento)))
+    print("b2 " + str( k-2-N)+" " + str( calculate_input_to_the_system(k - 2 - N, input_to_the_system,desplazamiento)))
     last_y = a1 * last_y + b1 * calculate_input_to_the_system(
-        k - 1 - N, input_to_the_system) + b2 * calculate_input_to_the_system(k - 2 - N, input_to_the_system)
+        k - 1 - N, input_to_the_system,desplazamiento) + b2 * calculate_input_to_the_system(k - 2 - N, input_to_the_system,desplazamiento)
 
     return last_y + perturbacion_interna_value
 
@@ -81,7 +93,8 @@ def primer_orden(T, tau, gain, k, theta_prima, input_to_the_system, perturbacion
     a1, b1, b2, N = calculate_a1_b1_b2_N(T, tau, gain, theta_prima)
     if(k > 0):
         inputs.append(input_to_the_system) 
-
+    if(len(inputs) > MAX_LEN_INPUTS):
+        inputs.pop(0)
     return calculate_y_k_alternative(k, a1, b1, b2, N, input_to_the_system, perturbacion_interna_value), input_to_the_system
 
 
@@ -98,7 +111,7 @@ def calculate_c_ARX(number_of_coefficients, a_values, b_values, delay, k, input_
         if(i == 1):
             print("Estoy con el coefficiente 1")
         value_at_k += b_values[i] * \
-            calculate_input_to_the_system(k - delay - i, input_to_the_system)
+            calculate_input_to_the_system(k - delay - i, input_to_the_system,0)
     memoization_ARX[k] = value_at_k + perturbacion_interna_value
     return value_at_k + perturbacion_interna_value
 
