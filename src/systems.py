@@ -16,6 +16,7 @@ previous_arx_controller_outputs = [0, 0, 0, 0]
 inputs = []
 MAX_LEN_INPUTS = 5
 
+
 def calculate_a1_b1_b2_N(T, tau, gain, theta_prima):
     '''
     T : periodo
@@ -34,10 +35,7 @@ def calculate_a1_b1_b2_N(T, tau, gain, theta_prima):
     return (a1, b1, b2, N)
 
 
-
-
-
-def calculate_input_to_the_system(k, input_to_the_system,desplazamiento):
+def calculate_input_to_the_system(k, input_to_the_system, desplazamiento):
     global inputs
     global MAX_LEN_INPUTS
 
@@ -53,6 +51,7 @@ def calculate_input_to_the_system(k, input_to_the_system,desplazamiento):
             print(inputs)
             k = k - desplazamiento
             if(k >= MAX_LEN_INPUTS):
+                return inputs[k-1]
                 print("EXCEEDED LIMIT k: " + str(k))
                 print("Desplazamiento : " + str(desplazamiento))
             # TODO: input to the system is not hardcoded
@@ -72,11 +71,12 @@ def calculate_y_k_alternative(k, a1, b1, b2, N, input_to_the_system, perturbacio
 
     # TODO: Test b2
     print("Voy a usar: ")
-    print("b1 " + str( k-1-N)+" " + str(calculate_input_to_the_system(
-        k - 1 - N, input_to_the_system,desplazamiento)))
-    print("b2 " + str( k-2-N)+" " + str( calculate_input_to_the_system(k - 2 - N, input_to_the_system,desplazamiento)))
+    print("b1 " + str(k-1-N)+" " + str(calculate_input_to_the_system(
+        k - 1 - N, input_to_the_system, desplazamiento)))
+    print("b2 " + str(k-2-N)+" " + str(calculate_input_to_the_system(k -
+                                                                     2 - N, input_to_the_system, desplazamiento)))
     last_y = a1 * last_y + b1 * calculate_input_to_the_system(
-        k - 1 - N, input_to_the_system,desplazamiento) + b2 * calculate_input_to_the_system(k - 2 - N, input_to_the_system,desplazamiento)
+        k - 1 - N, input_to_the_system, desplazamiento) + b2 * calculate_input_to_the_system(k - 2 - N, input_to_the_system, desplazamiento)
 
     return last_y + perturbacion_interna_value
 
@@ -94,7 +94,7 @@ def primer_orden(T, tau, gain, k, theta_prima, input_to_the_system, perturbacion
     global inputs
     a1, b1, b2, N = calculate_a1_b1_b2_N(T, tau, gain, theta_prima)
     if(k > 0):
-        inputs.append(input_to_the_system) 
+        inputs.append(input_to_the_system)
     if(len(inputs) > MAX_LEN_INPUTS):
         inputs.pop(0)
     return calculate_y_k_alternative(k, a1, b1, b2, N, input_to_the_system, perturbacion_interna_value), input_to_the_system
@@ -107,9 +107,9 @@ def calculate_c_ARX(number_of_coefficients, a_values, b_values, delay, k, input_
         return 0
     if(memoization_ARX[k] != -1):
         return memoization_ARX[k]
-    
+
     value_at_k = 0
-    for i in range(0, number_of_coefficients):  
+    for i in range(0, number_of_coefficients):
         if(k > MAX_LEN_INPUTS):
             desplazamiento = k - MAX_LEN_INPUTS
         if(k < 0):
@@ -119,7 +119,8 @@ def calculate_c_ARX(number_of_coefficients, a_values, b_values, delay, k, input_
         if(i == 1):
             print("Estoy con el coefficiente 1")
         value_at_k += b_values[i] * \
-            calculate_input_to_the_system(k - delay - i, input_to_the_system,desplazamiento)
+            calculate_input_to_the_system(
+                k - delay - i, input_to_the_system, desplazamiento)
     memoization_ARX[k] = value_at_k + perturbacion_interna_value
     return value_at_k + perturbacion_interna_value
 
@@ -136,11 +137,11 @@ def ARX_filter(number_of_coefficients, a_values, b_values, delay, k, input_to_th
     '''
     if(k < 0):
         print("Invalid value of k")
-    if(k >0):
-        inputs.append(input_to_the_system) 
+
+    inputs.append(input_to_the_system)
     if(len(inputs) > MAX_LEN_INPUTS):
         inputs.pop(0)
-        
+
     print(calculate_c_ARX(number_of_coefficients, a_values,
                           b_values, delay, k, input_to_the_system, perturbacion_interna_value))
 
@@ -186,7 +187,7 @@ def calculate_salida_del_pid(T, kc, ki, kd, error):
     global previous_errors
     global previous_pid_output
     # TODO: Ask how to calculate mk with a digital pid
-    if(ki==0 or T==0):
+    if(ki == 0 or T == 0):
         print("Invalid PID!!!!!!!!!!!!!!")
         return 0
 
@@ -194,7 +195,7 @@ def calculate_salida_del_pid(T, kc, ki, kd, error):
     beta_1 = kc * (-1.0 - (2.0*kd/T))
     beta_2 = kc*(kd/T)
 
-    print("B0 " + str(beta_0) +" B1 "+str(beta_1) + " B2 "+str(beta_2) )
+    print("B0 " + str(beta_0) + " B1 "+str(beta_1) + " B2 "+str(beta_2))
 
     new_pid_output = previous_pid_output + beta_0 * error + \
         beta_1 * previous_errors[0] + beta_2 * previous_errors[1]
@@ -211,20 +212,20 @@ def calculate_salida_arx_controller(alfas, betas, error):
     global previous_arx_controller_outputs
     m = previous_arx_controller_outputs
     new_arx_controller_output = 0
-    
 
-    for i in range(0,4):
-        new_arx_controller_output+=alfas[i+1]*m[i]
-        new_arx_controller_output+=betas[i+1]*previous_errors[i]
+    for i in range(0, 4):
+        new_arx_controller_output += alfas[i+1]*m[i]
+        new_arx_controller_output += betas[i+1]*previous_errors[i]
         print("calculating i + " + str(i))
-    new_arx_controller_output+=betas[0]*error
-    
-    previous_arx_controller_outputs.insert(0,new_arx_controller_output)
+    new_arx_controller_output += betas[0]*error
+
+    previous_arx_controller_outputs.insert(0, new_arx_controller_output)
     previous_arx_controller_outputs.pop()
-    previous_errors.insert(0,error)
+    previous_errors.insert(0, error)
     previous_errors.pop()
 
     return new_arx_controller_output
+
 
 def reset_systems():
     global last_y
@@ -237,6 +238,7 @@ def reset_systems():
     previous_errors = [0, 0, 0, 0]
     previous_pid_output = 0
     inputs = []
+
 
 if(__name__ == "__main__"):
 
