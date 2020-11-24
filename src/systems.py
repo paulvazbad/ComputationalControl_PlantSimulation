@@ -14,7 +14,7 @@ previous_pid_output = 0
 previous_arx_controller_outputs = [0, 0, 0, 0]
 
 inputs = []
-MAX_LEN_INPUTS = 15
+MAX_LEN_INPUTS = 5
 
 def calculate_a1_b1_b2_N(T, tau, gain, theta_prima):
     '''
@@ -52,7 +52,9 @@ def calculate_input_to_the_system(k, input_to_the_system,desplazamiento):
         else:
             print(inputs)
             k = k - desplazamiento
-            #print("REAL EN EL ARR K " + str(k))
+            if(k >= MAX_LEN_INPUTS):
+                print("EXCEEDED LIMIT k: " + str(k))
+                print("Desplazamiento : " + str(desplazamiento))
             # TODO: input to the system is not hardcoded
             return inputs[k]
     except Exception as identifier:
@@ -99,19 +101,25 @@ def primer_orden(T, tau, gain, k, theta_prima, input_to_the_system, perturbacion
 
 
 def calculate_c_ARX(number_of_coefficients, a_values, b_values, delay, k, input_to_the_system, perturbacion_interna_value):
+    global MAX_LEN_INPUTS
+    desplazamiento = 0
     if(k < 0):
         return 0
     if(memoization_ARX[k] != -1):
         return memoization_ARX[k]
-
+    
     value_at_k = 0
-    for i in range(0, number_of_coefficients):
+    for i in range(0, number_of_coefficients):  
+        if(k > MAX_LEN_INPUTS):
+            desplazamiento = k - MAX_LEN_INPUTS
+        if(k < 0):
+            return 0
         value_at_k += a_values[i]*calculate_c_ARX(
             number_of_coefficients, a_values, b_values, delay, k - i - 1, input_to_the_system, perturbacion_interna_value)
         if(i == 1):
             print("Estoy con el coefficiente 1")
         value_at_k += b_values[i] * \
-            calculate_input_to_the_system(k - delay - i, input_to_the_system,0)
+            calculate_input_to_the_system(k - delay - i, input_to_the_system,desplazamiento)
     memoization_ARX[k] = value_at_k + perturbacion_interna_value
     return value_at_k + perturbacion_interna_value
 
@@ -128,11 +136,15 @@ def ARX_filter(number_of_coefficients, a_values, b_values, delay, k, input_to_th
     '''
     if(k < 0):
         print("Invalid value of k")
+    if(k >0):
+        inputs.append(input_to_the_system) 
+    if(len(inputs) > MAX_LEN_INPUTS):
+        inputs.pop(0)
+        
     print(calculate_c_ARX(number_of_coefficients, a_values,
                           b_values, delay, k, input_to_the_system, perturbacion_interna_value))
 
-    return calculate_c_ARX(number_of_coefficients, a_values, b_values, delay, k, input_to_the_system, perturbacion_interna_value), calculate_input_to_the_system(
-        k, input_to_the_system)
+    return calculate_c_ARX(number_of_coefficients, a_values, b_values, delay, k, input_to_the_system, perturbacion_interna_value), input_to_the_system
 
 
 def calculate_criterios(criterio, k, t0, tao):
