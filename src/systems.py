@@ -13,6 +13,7 @@ previous_pid_output = 0
 
 previous_arx_controller_outputs = [0, 0, 0, 0]
 
+inputs = []
 
 def calculate_a1_b1_b2_N(T, tau, gain, theta_prima):
     '''
@@ -33,6 +34,7 @@ def calculate_a1_b1_b2_N(T, tau, gain, theta_prima):
 
 
 def calculate_input_to_the_system(k, input_to_the_system):
+    global inputs
     # TODO: Check with professor if before 0 we assume 0, consider theta_prima
     if(k < 0):
         return 0
@@ -42,7 +44,9 @@ def calculate_input_to_the_system(k, input_to_the_system):
                 return input_to_the_system[-1]
             return input_to_the_system[int(k)]
         else:
-            return input_to_the_system
+            print(inputs)
+            # TODO: input to the system is not hardcoded
+            return inputs[k]
     except Exception as identifier:
         print("fallo el calculo del input con i " + str(k) + identifier)
 
@@ -53,6 +57,10 @@ def calculate_y_k_alternative(k, a1, b1, b2, N, input_to_the_system, perturbacio
         return 0
 
     # TODO: Test b2
+    print("Voy a usar: ")
+    print("b1 " + str( k-1-N)+" " + str(calculate_input_to_the_system(
+        k - 1 - N, input_to_the_system)))
+    print("b2 " + str( k-2-N)+" " + str( calculate_input_to_the_system(k - 2 - N, input_to_the_system)))
     last_y = a1 * last_y + b1 * calculate_input_to_the_system(
         k - 1 - N, input_to_the_system) + b2 * calculate_input_to_the_system(k - 2 - N, input_to_the_system)
 
@@ -69,9 +77,12 @@ def primer_orden(T, tau, gain, k, theta_prima, input_to_the_system, perturbacion
     input: Entrada al 
     '''
     print("Funcion de primer orden")
+    global inputs
     a1, b1, b2, N = calculate_a1_b1_b2_N(T, tau, gain, theta_prima)
-    return calculate_y_k_alternative(k, a1, b1, b2, N, input_to_the_system, perturbacion_interna_value), calculate_input_to_the_system(
-        k, input_to_the_system)
+    if(k > 0):
+        inputs.append(input_to_the_system) 
+
+    return calculate_y_k_alternative(k, a1, b1, b2, N, input_to_the_system, perturbacion_interna_value), input_to_the_system
 
 
 def calculate_c_ARX(number_of_coefficients, a_values, b_values, delay, k, input_to_the_system, perturbacion_interna_value):
@@ -158,6 +169,8 @@ def calculate_salida_del_pid(T, kc, ki, kd, error):
     beta_1 = kc * (-1.0 - (2.0*kd/T))
     beta_2 = kc*(kd/T)
 
+    print("B0 " + str(beta_0) +" B1 "+str(beta_1) + " B2 "+str(beta_2) )
+
     new_pid_output = previous_pid_output + beta_0 * error + \
         beta_1 * previous_errors[0] + beta_2 * previous_errors[1]
 
@@ -193,11 +206,12 @@ def reset_systems():
     global memoization_ARX
     global previous_errors
     global previous_pid_output
+    global inputs
     last_y = 0
     memoization_ARX = [-1 for i in range(0, 8000)]
-    previous_errors = [0, 0]
+    previous_errors = [0, 0, 0, 0]
     previous_pid_output = 0
-
+    inputs = []
 
 if(__name__ == "__main__"):
 

@@ -152,6 +152,8 @@ def reset():
     global start_graphing
     global error
     global referencias
+    global y_value
+    global mk
 
     start_graphing = False
     x = []
@@ -178,7 +180,8 @@ def reset():
     ax_input.set_ylim([0, 60])
 
     """
-
+    y_value = 0
+    mk = 0
     reset_systems()
 
 
@@ -354,7 +357,7 @@ def cal_cons():
     if not gain.get() or not thetaprima.get() or not tao.get():
         return
 
-    kc, kd, ki = calculate_criterios(str(tipoMetodo.get()), float(
+    kc, ki, kd = calculate_criterios(str(tipoMetodo.get()), float(
         gain.get()), float(thetaprima.get()), float(tao.get()))
 
     var_kc.set(kc)
@@ -453,7 +456,7 @@ ax_input.set_ylim([0, 60])
 # number_of_coefficients, a_values, b_values, delay, k, input_to_the_system
 ticks = 0
 X_RANGE = 50
-y_value = 100
+y_value = 0
 y_input_val = 100
 y_input = []
 
@@ -482,8 +485,8 @@ while True:
     
 
     #ax.scatter(seconds, y + perturbacion_de_entrada_value)
-    plt.pause(0.05)
-    ticks += 0.05
+    plt.pause(0.5)
+
 
     """
     chart_type.draw()
@@ -491,7 +494,7 @@ while True:
     """
 
     if start_graphing:
-        
+        print("------------Tiempo k : " + str(seconds) + "----------" )
         axes_out[0].axis([seconds - X_RANGE, seconds, 0, 2*(y_value+5)])
         axes_out[1].axis([seconds - X_RANGE, seconds, 0, 2*(y_value+5)])
 
@@ -509,8 +512,6 @@ while True:
         
         #figure_out.tight_layout()
         
-        
-        
         if(manualAutomatico_value== 0):
             # Modo manual (by default)
             print("Modo Manual")
@@ -518,10 +519,41 @@ while True:
                 mk = input_to_the_system + perturbacion_de_entrada_value
             else:
                 mk = input_to_the_system[seconds] + perturbacion_de_entrada_value
-            
-        else:
+        
+        print("Entrada a la planta MK: " + str(mk))
+        # GENERAR CK (SALIDA DE LA PLANTA)
+        if plant_type_flag == 0:
+            y_value, y_input_val = primer_orden(T_value, tau_value, gain_value,
+                                                seconds, theta_prima_value, mk, perturbacion_interna_value)
+        elif plant_type_flag == 1:
+            print(number_of_coefficients, a_list,
+                    b_list, d_value, seconds, mk)
+            y_value, y_input_val = ARX_filter(
+                number_of_coefficients, a_list, b_list, d_value, seconds, mk, perturbacion_interna_value)
+
+        #ax.set_title("Output: {}".format(y_value))
+        #ax_input.set_title("Input: {}".format(y_input_val))
+
+        axes_out[0].set_title("Output: {}".format(y_value))
+        axes_out[1].set_title("Input: {}".format(y_input_val))
+
+        y.append(y_value)
+        y_input.append(y_input_val)
+        x.append(seconds)
+        print(" Valor de salida "+str(y_value))
+        if(manualAutomatico_value==0):
+            reference.set(y_value)
+            reference_enter = y_value
+            print("Referencia  "+ str(reference.get()))
+        
+        referencias.append(reference_enter)
+
+        # GENERAR SALIDA DEL CONTROLADOR (MK)
+        if(manualAutomatico_value==1):
             # TODO: reference field en el UI
             ventana.title("Simulador: Modo Automatico")
+            print("Y value" + str(y_value))
+            print("Referencia" + str(reference_enter))
             error =  reference_enter - y_value
             print("Error" + str(error))
             print("Modo Automatico")
@@ -536,41 +568,14 @@ while True:
                 salida_arx_controller = calculate_salida_arx_controller(a_pid_list,b_pid_list,error)
                 mk = salida_arx_controller + perturbacion_de_entrada_value
                 
-            print("MK a meter" + str(mk))
+            print("MK a meter " + str(mk))
 
-        if(ticks >= 0.1):
-            if plant_type_flag == 0:
-                y_value, y_input_val = primer_orden(T_value, tau_value, gain_value,
-                                                    seconds, theta_prima_value, mk, perturbacion_interna_value)
-            elif plant_type_flag == 1:
-                print(number_of_coefficients, a_list,
-                      b_list, d_value, seconds, mk)
-                y_value, y_input_val = ARX_filter(
-                    number_of_coefficients, a_list, b_list, d_value, seconds, input_to_the_system, perturbacion_interna_value)
-
-
-            #ax.set_title("Output: {}".format(y_value))
-            #ax_input.set_title("Input: {}".format(y_input_val))
-
-            axes_out[0].set_title("Output: {}".format(y_value))
-            axes_out[1].set_title("Input: {}".format(y_input_val))
-
-            y.append(y_value)
-            y_input.append(y_input_val)
-            x.append(seconds)
-            if(manualAutomatico_value==0):
-                reference.set(y_value)
-                reference_enter = y_value
-                print("Referencia  "+ str(reference.get()))
-            
-            referencias.append(reference_enter)
-
-            if(seconds >= X_RANGE):
-                y.pop(0)
-                x.pop(0)
-                y_input.pop(0)
-                referencias.pop(0)
-            seconds += 1
-            ticks = 0
-           
-        # plt.show()
+        if(seconds >= X_RANGE):
+            y.pop(0)
+            x.pop(0)
+            y_input.pop(0)
+            referencias.pop(0)
+        seconds += 1
+        ticks = 0
+        
+    # plt.show()

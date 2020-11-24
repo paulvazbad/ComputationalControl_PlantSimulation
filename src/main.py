@@ -33,7 +33,7 @@ def main():
 
     while(seconds < time_to_plot):
         x.append(seconds)
-        y = primer_orden(0.5, 3.34, 1, seconds, 1.46, input_to_the_system,0)
+        y = primer_orden(1, 3.34, 1, seconds, 1.46, input_to_the_system,0)
         y_plot.append(y[0])
         print("Value of primer orden at " + str(seconds) + " is " + str(y))
        
