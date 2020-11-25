@@ -128,7 +128,8 @@ def ARX_filter(number_of_coefficients, a_values, b_values, delay, k, input_to_th
     if(k < 0):
         print("Invalid value of k")
 
-    inputs[k%MAX_LEN_INPUTS] = input_to_the_system
+    if(k > 0):
+        inputs[(k - 1) %MAX_LEN_INPUTS] = input_to_the_system
 
     print(calculate_c_ARX(number_of_coefficients, a_values,
                           b_values, delay, k, input_to_the_system, perturbacion_interna_value))
