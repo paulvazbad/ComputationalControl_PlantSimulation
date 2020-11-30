@@ -144,11 +144,6 @@ def calculate_criterios(criterio, k, t0, tao):
         ki = tao/(0.74-0.13*(t0/tao))
         kd = 0.348*tao*(t0/tao)**0.914
 
-    elif criterio == 'Ref_ISE':
-        kc = 0
-        ki = 0
-        kd = 0
-
     elif criterio == 'Ref_ITAE':
         kc = (0.965/k)*(t0/tao)**-0.855
         ki = tao/(0.796-0.147*(t0/tao))
@@ -201,9 +196,12 @@ def calculate_salida_arx_controller(alfas, betas, error):
     global previous_arx_controller_outputs
     m = previous_arx_controller_outputs
     new_arx_controller_output = 0
-
+    print(alfas)
+    print(betas)
+    print("Previous controller outputs: ")
+    print(m)
     for i in range(0, 4):
-        new_arx_controller_output += alfas[i+1]*m[i]
+        new_arx_controller_output += alfas[i]*m[i]
         new_arx_controller_output += betas[i+1]*previous_errors[i]
         print("calculating i + " + str(i))
     new_arx_controller_output += betas[0]*error
@@ -223,12 +221,13 @@ def reset_systems():
     global previous_pid_output
     global inputs
     global MAX_LEN_INPUTS
+    global previous_arx_controller_outputs
     last_y = 0
     memoization_ARX = [-1 for i in range(0, 8000)]
     previous_errors = [0, 0, 0, 0]
     previous_pid_output = 0
     inputs = [0 for i in range(0, MAX_LEN_INPUTS)]
-
+    previous_arx_controller_outputs = [0, 0, 0, 0]
 
 if(__name__ == "__main__"):
 

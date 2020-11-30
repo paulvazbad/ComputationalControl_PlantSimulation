@@ -28,6 +28,8 @@ d_value = 0
 x = []
 y = []
 referencias = []
+perturbaciones_entrada = []
+perturbaciones_internas = []
 
 start_graphing = False
 legends_in_plots = False
@@ -131,14 +133,17 @@ def enter(tipoDePlanta, tipoDeEntrada, perturbacionHab, perturbacionInterna):
 
     manualAutomatico_value = manualAutomatico.get()
 
-    if not manualAutomatico_value:
-        if tipoDePID.get() == 0:
+    print("Manual o automatico " + str(manualAutomatico_value))
+    if manualAutomatico_value:
+        if controller_type_flag == 0:
+            print("MODO controlador PID")
             print(var_kc.get(), var_kd.get(), var_ki.get())
 
             kc_value = float(var_kc.get())
             kd_value = float(var_kd.get())
             ki_value = float(var_ki.get())
         else:
+            print('Modo controlador ARX')
             print(a_pid.get(), b_pid.get())
 
             a_pid_list = [float(x) for x in a_pid.get().split(",")]
@@ -154,11 +159,16 @@ def reset():
     global referencias
     global y_value
     global mk
+    global perturbaciones_entrada
+    global perturbaciones_internas
+    global legends_in_plots
 
     start_graphing = False
     x = []
     y = []
     referencias = []
+    perturbaciones_entrada = []
+    perturbaciones_internas = []
     y_input = []
     error = 0
     seconds = 0
@@ -309,7 +319,7 @@ def constantes():
 
     per_row += 1
 
-    choices = {'Ref_IAE', 'Ref_ISE', 'Ref_ITAE',
+    choices = {'Ref_IAE', 'Ref_ITAE',
                'Per_IAE', 'Per_ISE', 'Per_ITAE'}
 
     popupMenu = tk.OptionMenu(ventana, tipoMetodo, *choices)
@@ -499,8 +509,10 @@ while True:
         axes_out[1].axis([seconds - X_RANGE, seconds, 0, 2*(y_value+5)])
 
         axes_out[0].plot(x, y, 'r-',label="Ck")
-        axes_out[0].plot(x,referencias,'g',label="Rx")
+        axes_out[0].plot(x,referencias,'g',label="Rk")
         axes_out[1].plot(x, y_input, 'b', label="Mk")
+        axes_out[1].plot(x, perturbaciones_entrada, 'g', label="pert. entrada")
+        axes_out[1].plot(x, perturbaciones_internas, 'r', label="pert. internas")
         #axes_out[0].autoscale()
         #axes_out[1].autoscale()
 
@@ -547,6 +559,8 @@ while True:
             print("Referencia  "+ str(reference.get()))
         
         referencias.append(reference_enter)
+        perturbaciones_entrada.append(perturbacion_de_entrada_value)
+        perturbaciones_internas.append(perturbacion_interna_value)
 
         # GENERAR SALIDA DEL CONTROLADOR (MK)
         if(manualAutomatico_value==1):
@@ -575,6 +589,8 @@ while True:
             x.pop(0)
             y_input.pop(0)
             referencias.pop(0)
+            perturbaciones_entrada.pop(0)
+            perturbaciones_internas.pop(0)
         seconds += 1
         ticks = 0
         
